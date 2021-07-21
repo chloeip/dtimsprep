@@ -1,6 +1,7 @@
-from typing import Any, Optional;
-from enum import Enum;
-import pandas as pd;
+from typing import Any, Optional
+from enum import Enum
+import pandas as pd
+import numpy as np
 
 from .lookups import standard_column_names as CN
 
@@ -130,8 +131,14 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 				continue
 			
 			# compute overlap metrics for each row of data
-			overlap_min = data_to_aggregate_for_target_group[CN.slk_from].apply(max, args=[target_row[CN.slk_from]])
-			overlap_max = data_to_aggregate_for_target_group[CN.slk_to].apply(min, args=[target_row[CN.slk_to]])
+			
+			
+			#overlap_min = data_to_aggregate_for_target_group[CN.slk_from].apply(max, args=[target_row[CN.slk_from]])
+			#overlap_max = data_to_aggregate_for_target_group[CN.slk_to].apply(min, args=[target_row[CN.slk_to]])
+			# TODO: confirm the two rows below work the same as those above. This method should be much faster:
+			overlap_min = pd.DataFrame([data_to_aggregate_for_target_group[CN.slk_from],target_row[CN.slk_from]]).max()
+			overlap_max = pd.DataFrame([data_to_aggregate_for_target_group[CN.slk_to],target_row[CN.slk_to]]).min()
+
 			overlap_len = overlap_max - overlap_min
 			
 			# the sum of the length of all data segments overlapping the target segment
@@ -151,9 +158,27 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 					)
 				
 				elif column_action.aggregation.type == AggregationType.LengthWeightedPercentile:
-					aggregated_result.append(
-						(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len / total_overlap_length).quantile(column_action.percentile)
+					
+					values_and_lengths = pd.DataFrame([
+							data_to_aggregate_for_target_group[column_action.column_name],
+							overlap_len
+						],
+						columns=["values","lengths"]
+					).sort_values(by="values")
+
+					x_coords = (values_and_lengths["lengths"].rolling(2).sum()/2).fillna(0).cumsum()
+					x_coords/=x_coords.iloc[-1]
+					result = np.interp(
+						column_action.aggregation.percentile,
+						x_coords.to_numpy(),
+						values_and_lengths["values"].to_numpy()
 					)
+					aggregated_result.append(result)
+					
+
+					# aggregated_result.append(
+					# 	(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len / total_overlap_length).quantile(column_action.aggregation.percentile)
+					# )
 			result_index.append(target_index)
 			result_rows.append(aggregated_result)
 	
