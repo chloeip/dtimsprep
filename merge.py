@@ -165,7 +165,6 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 						],
 						columns=["values","lengths"]
 					).sort_values(by="values")
-
 					x_coords = (values_and_lengths["lengths"].rolling(2).sum()/2).fillna(0).cumsum()
 					x_coords/=x_coords.iloc[-1]
 					result = np.interp(
