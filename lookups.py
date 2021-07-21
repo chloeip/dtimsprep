@@ -1,6 +1,52 @@
 
 
-class standard_column_names:
+
+class Printable_Class_Members(type):
+	""" This metaclass alters the way that python prints another class
+	Normally when you create a class like this and try to print it:
+	```
+	class ExampleClass:
+		some_prop = "some_value"
+		another_prop = "another_value"
+	
+	print(ExampleClass)
+	```
+
+	you get something unintelligible like `<class '__main__.ExampleClass'>`
+	by adding this metaclass like this;
+	```
+	class ExampleClass(metaclass=Printable_Class_Members):
+		some_prop = "some_value"
+		another_prop = "another_value"
+	
+	print(ExampleClass)
+	```
+	you get
+	```
+	```
+
+	"""
+	def __repr__(self):
+		return str(self)
+
+	def __str__(self):
+		import inspect
+		members = inspect.getmembers(standard_column_names, lambda a:not(inspect.isroutine(a)))
+		
+		members = [member for member in members if not member[0].startswith("__")]
+		result = "Name used in code:"
+		pad_length = max(max(len(member) for (member,value) in members),len(result))
+		result = result.rjust(pad_length," ")+"   Output Column Name:\n"
+		result += "-----".rjust(pad_length," ")+"   -----\n"
+		for (member,value) in members:
+			result += member.rjust(pad_length," ")+" : "+value+"\n"
+		return result
+
+class ExampleClass(metaclass=Printable_Class_Members):
+		some_prop = "some_value"
+		another_prop = "another_value"
+
+class standard_column_names(metaclass=Printable_Class_Members):
 	"""lookup table for standard dTIMS input column names
 	By using this class like
 	>>> from lookups import standard_column_names as CN
@@ -34,4 +80,6 @@ class standard_column_names:
 	corpex_link_category = "MABCD"
 	corpex_aadt_year = "Traff_Yr"
 	corpex_aadt = "AADT"
-	
+
+	curvature = "Curv"
+	deflection = "Defl"
