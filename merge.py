@@ -12,6 +12,13 @@ class AggregationType(Enum):
 	LengthWeightedPercentile = 4
 
 class Aggregation:
+
+	def __init__(self, aggregation_type:AggregationType, percentile:Optional[float] = None):
+		"""Don't use initialise this class directly, please use one of the static factory functions above"""
+		self.type:AggregationType = aggregation_type
+		self.percentile:Optional[float] = percentile
+		pass
+
 	@staticmethod
 	def KeepLongest():
 		return Aggregation(AggregationType.KeepLongest)
@@ -36,15 +43,11 @@ class Aggregation:
 			percentile=percentile
 		)
 
-	def __init__(self, aggregation_type:AggregationType, percentile:Optional[float] = None):
-		"""Don't use initialise this class directly, please use one of the static factory functions above"""
-		self.type:AggregationType = aggregation_type
-		self.percentile:Optional[float] = percentile
-		pass
 
 class InfillType(Enum):
 	none = 1
 	value = 2
+
 
 class Infill:
 	def __init__(self, infill_type:InfillType, value:Optional[Any]):
@@ -150,7 +153,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 			for column_action_index, column_action in enumerate(column_actions):
 				if column_action.aggregation.type == AggregationType.LengthWeightedAverage:
 					aggregated_result.append(
-						(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len / total_overlap_length).sum()
+						(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len ).sum() / total_overlap_length
 					)
 				
 				elif column_action.aggregation.type == AggregationType.KeepLongest:
@@ -160,7 +163,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 				
 				elif column_action.aggregation.type == AggregationType.LengthWeightedPercentile:
 					aggregated_result.append(
-						(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len / total_overlap_length).quantile(column_action.percentile)
+						(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len ).quantile(column_action.percentile) / total_overlap_length
 					)
 			result_index.append(target_index)
 			result_rows.append(aggregated_result)
