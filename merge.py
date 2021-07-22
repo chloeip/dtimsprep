@@ -6,8 +6,9 @@ from .lookups import standard_column_names as CN
 
 
 class AggregationType(Enum):
-	KeepLongest = 7
-	LengthWeightedAverage = 2
+	KeepLongest = 1
+	Average = 2
+	LengthWeightedAverage = 3
 	LengthWeightedPercentile = 4
 
 class Aggregation:
@@ -18,6 +19,10 @@ class Aggregation:
 	@staticmethod
 	def LengthWeightedAverage():
 		return Aggregation(AggregationType.LengthWeightedAverage)
+	
+	@staticmethod
+	def Average():
+		return Aggregation(AggregationType.Average)
 
 	@staticmethod
 	def LengthWeightedPercentile(percentile:float):
@@ -32,6 +37,7 @@ class Aggregation:
 		)
 
 	def __init__(self, aggregation_type:AggregationType, percentile:Optional[float] = None):
+		"""Don't use initialise this class directly, please use one of the static factory functions above"""
 		self.type:AggregationType = aggregation_type
 		self.percentile:Optional[float] = percentile
 		pass
@@ -104,7 +110,9 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 		# 	data_matching_target_group = data.loc[list(group_index), :]
 		# 	raise e
 
-		# I abandoned multi indexed data frames because they appear to be either 1) broken, 2) poorly documented
+		# I abandoned multi indexed data frames because they appear to be either 1) broken, 2) poorly documented.
+		# sometimes you can slice them with a list of column names, other times it only works with a tuple.
+		# the method used below to filter the data may not be the fastest
 		data_matching_target_group = data
 		for index_value,index_column_name in zip(target_group_index, join_left):
 			data_matching_target_group = data_matching_target_group[data_matching_target_group[index_column_name]==index_value]
