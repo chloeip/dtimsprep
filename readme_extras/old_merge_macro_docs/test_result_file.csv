@@ -1,4 +1,4 @@
-road,cwy,slk_from,slk_to,name,category,measure
+road_no,cway,slk_from,slk_to,name,category,measure
 H001,L,   0.00, 100.00,A,Asphalt,400
 H001,L, 100.00, 200.00,A,Asphalt,30800
 H001,L, 200.00, 300.00,B,Yellow bricks,80400

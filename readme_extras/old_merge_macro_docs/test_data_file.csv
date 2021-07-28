@@ -1,4 +1,4 @@
-name,road,slk_from,slk_to,cwy,category,measure
+name,road_no,slk_from,slk_to,cway,category,measure
 A,H001,  70.00, 160.00,L,      Asphalt, 1200
 B,H001, 190.00, 210.00,L,   Spray seal,60000
 C,H001, 240.00, 260.00,L,Yellow bricks, 2400

@@ -61,6 +61,10 @@ class standard_column_names(metaclass=Printable_Class_Members):
 	slk_to = "slk_to"
 	slk_length = "slk_length"
 	
+	true_from = "true_from"
+	true_to = "true_to"
+	true_length = "true_length"
+
 	xsp = "xsp"
 	
 	pavement_total_width = "F_Wdth"
@@ -80,6 +84,10 @@ class standard_column_names(metaclass=Printable_Class_Members):
 	corpex_link_category = "MABCD"
 	corpex_aadt_year = "Traff_Yr"
 	corpex_aadt = "AADT"
+	responsibility_area = "RA"
 
 	curvature = "Curv"
 	deflection = "Defl"
+    
+	rutting_cwy_max = "Max_RUT"
+	roughness_cwy_max = "Max_LANE_IRI"

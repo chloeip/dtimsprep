@@ -102,7 +102,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 
 	for target_group_index, target_group in target_groups:
 		# try:
-		# 	data_matching_target_group = data.loc[group_index, :]
+		# 	data_matching_target_group = data.loc[target_group_index, :]
 		# except KeyError:
 		# 	# There was no data matching the target group 
 		# 	continue
@@ -114,11 +114,11 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 		# 	data_matching_target_group = data.loc[list(group_index), :]
 		# 	raise e
 
-		# I abandoned multi indexed data frames because they appear to be either 1) broken, 2) poorly documented.
+		# I abandoned multi indexed data frames because they appear to be either 1) broken, 2) poorly documented;
 		# sometimes you can slice them with a list of column names, other times it only works with a tuple.
 		# the method used below to filter the data may not be the fastest
 		data_matching_target_group = data
-		for index_value,index_column_name in zip(target_group_index, join_left):
+		for index_value, index_column_name in zip(target_group_index, join_left):
 			data_matching_target_group = data_matching_target_group[data_matching_target_group[index_column_name]==index_value]
 		
 		for target_index, target_row in target_group.iterrows():
@@ -147,8 +147,8 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 			#overlap_min = data_to_aggregate_for_target_group[CN.slk_from].apply(max, args=[target_row[CN.slk_from]])
 			#overlap_max = data_to_aggregate_for_target_group[CN.slk_to].apply(min, args=[target_row[CN.slk_to]])
 			# TODO: confirm the two rows below work the same as those above. This method should be much faster:
-			overlap_min = pd.DataFrame([data_to_aggregate_for_target_group[CN.slk_from],target_row[CN.slk_from]]).max()
-			overlap_max = pd.DataFrame([data_to_aggregate_for_target_group[CN.slk_to],target_row[CN.slk_to]]).min()
+			overlap_min = np.maximum(data_to_aggregate_for_target_group[CN.slk_from], target_row[CN.slk_from])
+			overlap_max = np.minimum(data_to_aggregate_for_target_group[CN.slk_to],   target_row[CN.slk_to])
 
 			overlap_len = overlap_max - overlap_min
 			
@@ -158,6 +158,10 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 			# for each column of data that we keep, we must aggregate each field down to a single value
 			aggregated_result = []
 			for column_action_index, column_action in enumerate(column_actions):
+
+				# TODO: there is a bug here; we need to do data_to_aggregate_for_target_group[column_action.column_name].dropna()
+				# but we can't because we would need to also drop the corresponding overlap_len and recompute total_overlap_length for each column action.
+
 				if column_action.aggregation.type == AggregationType.LengthWeightedAverage:
 					aggregated_result.append(
 						(data_to_aggregate_for_target_group[column_action.column_name] * overlap_len ).sum() / total_overlap_length
@@ -176,7 +180,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 						],
 						columns=["values","lengths"]
 					).sort_values(by="values")
-					x_coords = (values_and_lengths["lengths"].rolling(2).sum()/2).fillna(0).cumsum()
+					x_coords = (values_and_lengths["lengths"].rolling(2).mean()).fillna(0).cumsum()
 					x_coords/=x_coords.iloc[-1]
 					result = np.interp(
 						column_action.aggregation.percentile,
