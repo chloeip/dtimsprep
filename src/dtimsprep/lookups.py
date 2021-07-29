@@ -42,10 +42,6 @@ class Printable_Class_Members(type):
 			result += member.rjust(pad_length," ")+" : "+value+"\n"
 		return result
 
-class ExampleClass(metaclass=Printable_Class_Members):
-		some_prop = "some_value"
-		another_prop = "another_value"
-
 class standard_column_names(metaclass=Printable_Class_Members):
 	"""lookup table for standard dTIMS input column names
 	By using this class like

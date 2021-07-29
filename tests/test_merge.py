@@ -1,4 +1,7 @@
-from .src.dims_prep import merge
 
-def test_merge():
-	print("yey")
+from dtimsprep import merge as merge
+
+def test_pytest():
+	assert True
+
+
