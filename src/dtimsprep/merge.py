@@ -59,16 +59,11 @@ class Action:
 def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action],from_to:List[str]=["slk_from", "slk_to"]):
 	result_index = []
 	result_rows = []
-
-	# precalculate slk_length for each row of data
-	# data.loc[:, CN.slk_length] = data[CN.slk_to] - data[CN.slk_from]
-
+	
 	# reindex data for faster lookup
 	data['data_id'] = data.index
 	data = data.set_index([*join_left, 'data_id'])
 	data = data.sort_index()
-
-	# keep_column_names = [column_action.column_name for column_action in column_actions]
 
 	# Group target data by Road Number and Carriageway
 	try:
@@ -81,8 +76,6 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 		))
 
 	for target_group_index, target_group in target_groups:
-		
-
 
 		try:
 			data_matching_target_group = data.loc[target_group_index]
