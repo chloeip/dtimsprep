@@ -79,6 +79,9 @@ class Action:
 
 
 def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[str], column_actions: list[Action]):
+	result_index = []
+	result_rows = []
+	
 	# precalculate slk_length for each row of data
 	# data.loc[:, CN.slk_length] = data[CN.slk_to] - data[CN.slk_from]
 	
@@ -87,18 +90,18 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 	# data = data.set_index([*join_left, 'merge_index'])
 	# data = data.sort_index()
 	
-	result_index = []
-	result_rows = []
-	
-	# Group target data by Road Number and Carriageway, loop over groups
+
+
+	# Group target data by Road Number and Carriageway
 	try:
 		target_groups = target.groupby(join_left)
-	except Exception as e:
-		print(f"Failed to group target data by {join_left}")
-		print(f"Target had columns {target.columns}")
-		for uniquelist, col in [(list(target.loc[:,col].unique()), col) for col in join_left if col in target.columns]:
-			print(f"Target column {col} had unique list {uniquelist}")
-		raise e
+	except KeyError as e:
+		matching_columns = [col for col in join_left if col in target.columns]
+		raise Exception(f"Parameter join_left={join_left} did not match" + (
+			" any columns in the target DataFrame" if len(matching_columns)==0
+			else f" all columns in target DataFrame. Only matched columns {matching_columns}"
+		))
+		
 
 	for target_group_index, target_group in target_groups:
 		# try:
@@ -107,15 +110,17 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 		# 	# There was no data matching the target group 
 		# 	continue
 		# except TypeError as e:
-		# 	# The datatype of group_index is picky... sometimes it wants a tuple, sometimes it will accept a list
+		# 	# The datatype of target_group_index is picky... sometimes it wants a tuple, sometimes it will accept a list
 		# 	# this appears to be a bug or inconsistency with pandas when using multi-index dataframes.
-		# 	print(f"Error: Could not group the following data by {group_index}:")
+		# 	print(f"Error: Could not group the following data by {target_group_index}:")
 		# 	print(data)
-		# 	data_matching_target_group = data.loc[list(group_index), :]
+		# 	data_matching_target_group = data.loc[list(target_group_index), :]
 		# 	raise e
 
 		# I abandoned multi indexed data frames because they appear to be either 1) broken, 2) poorly documented;
 		# sometimes you can slice them with a list of column names, other times it only works with a tuple.
+		# I think this is because sometimes target_group is a series and sometimes it is a dataframe.
+
 		# the method used below to filter the data may not be the fastest
 		data_matching_target_group = data
 		for index_value, index_column_name in zip(target_group_index, join_left):
@@ -142,11 +147,6 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: list[s
 				continue
 			
 			# compute overlap metrics for each row of data
-			
-			
-			#overlap_min = data_to_aggregate_for_target_group[CN.slk_from].apply(max, args=[target_row[CN.slk_from]])
-			#overlap_max = data_to_aggregate_for_target_group[CN.slk_to].apply(min, args=[target_row[CN.slk_to]])
-			# TODO: confirm the two rows below work the same as those above. This method should be much faster:
 			overlap_min = np.maximum(data_to_aggregate_for_target_group[CN.slk_from], target_row[CN.slk_from])
 			overlap_max = np.minimum(data_to_aggregate_for_target_group[CN.slk_to],   target_row[CN.slk_to])
 
