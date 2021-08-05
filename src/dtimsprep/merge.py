@@ -56,7 +56,13 @@ class Action:
 		self.aggregation: Aggregation = aggregation
 
 
-def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action],from_to:List[str]=["slk_from", "slk_to"]):
+def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action], from_to:List[str]=["slk_from", "slk_to"]):
+	# column names for start and end offset.
+	# Note:
+	#  - these columns should be integers
+	# - they should not have missing values
+	slk_from, slk_to = from_to
+	
 	result_index = []
 	result_rows = []
 	
@@ -64,7 +70,6 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 	data['data_id'] = data.index
 	data = data.set_index([*join_left, 'data_id'])
 	data = data.sort_index()
-
 	# Group target data by Road Number and Carriageway
 	try:
 		target_groups = target.groupby(join_left)
@@ -74,9 +79,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			" any columns in the target DataFrame" if len(matching_columns)==0
 			else f" all columns in target DataFrame. Only matched columns {matching_columns}"
 		))
-
 	for target_group_index, target_group in target_groups:
-
 		try:
 			data_matching_target_group = data.loc[target_group_index]
 		except KeyError:
@@ -95,8 +98,8 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 
 		for target_index, target_row in target_group.iterrows():
 			data_to_aggregate_for_target_group = data_matching_target_group[
-				(data_matching_target_group[CN.slk_from] < target_row[CN.slk_to]) &
-				(data_matching_target_group[CN.slk_to] > target_row[CN.slk_from])
+				(data_matching_target_group[slk_from] < target_row[slk_to]) &
+				(data_matching_target_group[slk_to] > target_row[slk_from])
 			].copy()
 
 			# if no data matches the target group then skip
@@ -104,8 +107,8 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 				continue
 
 			# compute overlap metrics for each row of data
-			overlap_min = np.maximum(data_to_aggregate_for_target_group[CN.slk_from], target_row[CN.slk_from])
-			overlap_max = np.minimum(data_to_aggregate_for_target_group[CN.slk_to],   target_row[CN.slk_to])
+			overlap_min = np.maximum(data_to_aggregate_for_target_group[slk_from], target_row[slk_from])
+			overlap_max = np.minimum(data_to_aggregate_for_target_group[slk_to],   target_row[slk_to])
 
 			# the maximum in this line might optionally be remove since it is guaranteed by an earlier filter
 			# overlap_len = np.maximum(overlap_max - overlap_min, 0)
