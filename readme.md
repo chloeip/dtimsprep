@@ -33,7 +33,7 @@ pip install -e .
 
 ### 2.2. Option 2: Copy Paste
 
-Clone this repo, then copy-paste the src/dtimsprep folder into your python project directory, import as normal.
+Clone this repo, then copy-paste the `dtimsprep` folder from `./src/` into your python project directory, use as normal.
 
 ### 2.3. Option 3: From Wheel
 
