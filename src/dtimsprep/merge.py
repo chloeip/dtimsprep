@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from enum import Enum
 import pandas as pd
 import numpy as np
@@ -56,11 +56,8 @@ class Action:
 		self.aggregation: Aggregation = aggregation
 
 
-def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action], from_to:List[str]=["slk_from", "slk_to"]):
-	# column names for start and end offset.
-	# Note:
-	#  - these columns should be integers
-	# - they should not have missing values
+def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action], from_to: Tuple[str, str] = ("slk_from", "slk_to")):
+	
 	slk_from, slk_to = from_to
 	
 	result_index = []
@@ -76,7 +73,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 	except KeyError as e:
 		matching_columns = [col for col in join_left if col in target.columns]
 		raise Exception(f"Parameter join_left={join_left} did not match" + (
-			" any columns in the target DataFrame" if len(matching_columns)==0
+			" any columns in the target DataFrame" if len(matching_columns) == 0
 			else f" all columns in target DataFrame. Only matched columns {matching_columns}"
 		))
 	for target_group_index, target_group in target_groups:
@@ -88,13 +85,11 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 		except TypeError as e:
 			# The datatype of group_index is picky... sometimes it wants a tuple, sometimes it will accept a list
 			# this appears to be a bug or inconsistency with pandas when using multi-index dataframes.
-			print(f"Error: Could not group the following data by {group_index}:")
-			print(f"type(group_index)  {type(group_index)}:")
-			print(f"type(data_matching_target_group)  {type(data_matching_target_group)}:")
+			print(f"Error: Could not group the following data by {target_group_index}:")
+			print(f"type(group_index)  {type(target_group_index)}:")
 			print("the data:")
 			print(data)
 			raise e
-
 
 		for target_index, target_row in target_group.iterrows():
 			data_to_aggregate_for_target_group = data_matching_target_group[
@@ -121,10 +116,10 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			# create a blank row to store the result of each column
 			aggregated_result_row = []
 			for column_action_index, column_action in enumerate(column_actions):
-				column_len_to_aggregate = data_to_aggregate_for_target_group.loc[:,[column_action.column_name,"overlap_len"]]
+				column_len_to_aggregate:pd.DataFrame = data_to_aggregate_for_target_group.loc[:, [column_action.column_name, "overlap_len"]]
 				column_len_to_aggregate = column_len_to_aggregate[
-					~column_len_to_aggregate.iloc[:,0].isna() &
-					(column_len_to_aggregate["overlap_len"]>0)
+					~column_len_to_aggregate.iloc[:, 0].isna() &
+					(column_len_to_aggregate["overlap_len"] > 0)
 				]
 
 				if column_len_to_aggregate.empty:
@@ -135,7 +130,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 				column_to_aggregate = column_len_to_aggregate.iloc[:,0]
 				column_to_aggregate_overlap_len = column_len_to_aggregate.iloc[:,1]
 
-				if  column_action.aggregation.type == AggregationType.Average:
+				if column_action.aggregation.type == AggregationType.Average:
 					aggregated_result_row.append(
 						column_to_aggregate.mean()
 					)
@@ -151,13 +146,14 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					)
 
 				elif column_action.aggregation.type == AggregationType.LengthWeightedPercentile:
-
-					column_len_to_aggregate.sort_values(
+					
+					column_len_to_aggregate = column_len_to_aggregate.sort_values(
 						by=column_action.column_name,
 						ascending=True
 					)
-					column_to_aggregate = column_len_to_aggregate.iloc[:,0]
-					column_to_aggregate_overlap_len = column_len_to_aggregate.iloc[:,1]
+					
+					column_to_aggregate = column_len_to_aggregate.iloc[:, 0]
+					column_to_aggregate_overlap_len = column_len_to_aggregate.iloc[:, 1]
 
 					x_coords = (column_to_aggregate_overlap_len.rolling(2).mean()).fillna(0).cumsum()
 					x_coords /= x_coords.iloc[-1]

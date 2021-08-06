@@ -21,28 +21,7 @@ def plot_dist(ax: plt.Axes, df, title=None, height=None):
 	if title is not None:
 		ax.set_title(title)
 	
-	ax.set_axisbelow(True)
-	ax.grid(
-		True,
-		which='minor',
-		axis='both',
-		color="#CCCCCC",
-		linestyle='dotted'
-	)
-	ax.grid(
-		True,
-		which='major',
-		axis='both'
-	)
-	ax.xaxis.set_major_locator(MultipleLocator(10))
-	ax.xaxis.set_minor_locator(AutoMinorLocator(5))
 	
-	ax.yaxis.set_major_locator(MultipleLocator(100))
-	ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-	
-	ax.set_ymargin(0.1)
-	
-	ax.xaxis.set_tick_params('both', True)
 	
 	ax.bar(
 		x=df[cn.slk_from],
@@ -53,6 +32,30 @@ def plot_dist(ax: plt.Axes, df, title=None, height=None):
 		edgecolor='black',
 		alpha=0.6
 	)
+	
+	ax.xaxis.set_tick_params('both', True)
+	ax.xaxis.set_major_locator(MultipleLocator(10))
+	ax.xaxis.set_minor_locator(AutoMinorLocator(5))
+	
+	ax.yaxis.set_major_locator(MultipleLocator(100))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(10))
+	ax.set_ymargin(0.1)
+	
+	ax.set_axisbelow(True)
+	ax.grid(
+		True,
+		which='minor',
+		axis='both',
+		color="#DDDDDD",
+		linestyle='dotted'
+	)
+	ax.grid(
+		True,
+		which='major',
+		axis='both'
+	)
+	
+	
 	if height is not None:
 		for patch, draw_height in zip(ax.patches, draw_heights):
 			ax.text(
@@ -64,7 +67,7 @@ def plot_dist(ax: plt.Axes, df, title=None, height=None):
 				fontdict={"size": 8}
 			)
 
-def plot_seg_vs_merged(seg, dat):
+def plot_seg_vs_merged(seg, dat, test_name):
 	mer = merge.on_slk_intervals(
 		target=seg,
 		data=dat,
@@ -78,15 +81,24 @@ def plot_seg_vs_merged(seg, dat):
 		]
 	)
 	
+	fig:plt.Figure
 	fig, axs = plt.subplots(2, 3, sharex='all', sharey='all')
+	
+	fig.set_size_inches(w=16.5, h=11.7)
+	
 	plot_dist(axs[0, 0], dat, title="Original", height=dat[cn.value])
 	plot_dist(axs[0, 1], mer, title="Keep Longest", height=mer["longest"])
 	plot_dist(axs[0, 2], mer, title="Length Weighted Average", height=mer["l w average"])
-	plot_dist(axs[1, 0], mer, title="75th Percentile", height=mer["75th percentile"])
-	plot_dist(axs[1, 1], mer, title="50th Percentile", height=mer["50th percentile"])
+	plot_dist(axs[1, 0], mer, title="75th Percentile (Length Weighted)", height=mer["75th percentile"])
+	plot_dist(axs[1, 1], mer, title="50th Percentile (Length Weighted)", height=mer["50th percentile"])
 	plot_dist(axs[1, 2], mer, title="Average", height=mer["Average"])
+	
 	plt.tight_layout()
-	plt.show()
+	plt.savefig(
+		f"./test_plots/{test_name}.pdf",
+		orientation="landscape",
+		format="pdf",
+	)
 
 
 def test_pytest():
@@ -111,7 +123,7 @@ def test_plot_1():
 		[1, 90, 105, 470],
 	], columns=[cn.road, cn.slk_from, cn.slk_to, cn.value])
 	
-	plot_seg_vs_merged(seg, dat)
+	plot_seg_vs_merged(seg, dat, "test_plot_1")
 
 
 def test_plot_2():
@@ -140,7 +152,7 @@ def test_plot_2():
 		[1, 90, 105, 470],
 	], columns=[cn.road, cn.slk_from, cn.slk_to, cn.value])
 	
-	plot_seg_vs_merged(seg, dat)
+	plot_seg_vs_merged(seg, dat, "test_plot_2")
 
 
 def test_plot_3():
@@ -167,6 +179,6 @@ def test_plot_3():
 		[1, 120, 130, 450]
 	], columns=[cn.road, cn.slk_from, cn.slk_to, cn.value])
 	
-	plot_seg_vs_merged(seg, dat)
+	plot_seg_vs_merged(seg, dat, "test_plot_3")
 
 
