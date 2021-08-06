@@ -64,6 +64,30 @@ def plot_dist(ax: plt.Axes, df, title=None, height=None):
 				fontdict={"size": 8}
 			)
 
+def plot_seg_vs_merged(seg, dat):
+	mer = merge.on_slk_intervals(
+		target=seg,
+		data=dat,
+		join_left=[cn.road],
+		column_actions=[
+			merge.Action(cn.value, merge.Aggregation.KeepLongest(), rename="longest"),
+			merge.Action(cn.value, merge.Aggregation.LengthWeightedAverage(), rename="l w average"),
+			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.75), rename="75th percentile"),
+			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.5), rename="50th percentile"),
+			merge.Action(cn.value, merge.Aggregation.Average(), rename="Average")
+		]
+	)
+	
+	fig, axs = plt.subplots(2, 3, sharex='all', sharey='all')
+	plot_dist(axs[0, 0], dat, title="Original", height=dat[cn.value])
+	plot_dist(axs[0, 1], mer, title="Keep Longest", height=mer["longest"])
+	plot_dist(axs[0, 2], mer, title="Length Weighted Average", height=mer["l w average"])
+	plot_dist(axs[1, 0], mer, title="75th Percentile", height=mer["75th percentile"])
+	plot_dist(axs[1, 1], mer, title="50th Percentile", height=mer["50th percentile"])
+	plot_dist(axs[1, 2], mer, title="Average", height=mer["Average"])
+	plt.tight_layout()
+	plt.show()
+
 
 def test_pytest():
 	assert True
@@ -119,26 +143,30 @@ def test_plot_2():
 	plot_seg_vs_merged(seg, dat)
 
 
-def plot_seg_vs_merged(seg, dat):
-	mer = merge.on_slk_intervals(
-		target=seg,
-		data=dat,
-		join_left=[cn.road],
-		column_actions=[
-			merge.Action(cn.value, merge.Aggregation.KeepLongest(), rename="longest"),
-			merge.Action(cn.value, merge.Aggregation.LengthWeightedAverage(), rename="l w average"),
-			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.75), rename="75th percentile"),
-			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.5), rename="50th percentile"),
-			merge.Action(cn.value, merge.Aggregation.Average(), rename="Average")
-		]
-	)
+def test_plot_3():
+	seg = pd.DataFrame([
+		[1, 10, 40],
+		[1, 40, 70],
+		[1, 70, 100],
+		[1, 100, 130],
+		[1, 130, 160]
+	], columns=[cn.road, cn.slk_from, cn.slk_to])
 	
-	fig, axs = plt.subplots(2, 3, sharex='all', sharey='all')
-	plot_dist(axs[0, 0], dat, title="Original", height=dat[cn.value])
-	plot_dist(axs[0, 1], mer, title="Keep Longest", height=mer["longest"])
-	plot_dist(axs[0, 2], mer, title="Length Weighted Average", height=mer["l w average"])
-	plot_dist(axs[1, 0], mer, title="75th Percentile", height=mer["75th percentile"])
-	plot_dist(axs[1, 1], mer, title="50th Percentile", height=mer["50th percentile"])
-	plot_dist(axs[1, 2], mer, title="Average", height=mer["Average"])
-	plt.tight_layout()
-	plt.show()
+	dat = pd.DataFrame([
+		[1, 10, 20, 500],
+		[1, 20, 30, 510],
+		[1, 30, 40, 540],
+		[1, 40, 50, 320],
+		[1, 50, 60, 530],
+		[1, 60, 70, 510],
+		[1, 70, 80, 520],
+		[1, 80, 90, np.nan],
+		[1, 90, 100, 540],
+		[1, 100, 110, 520],
+		[1, 110, 120, 490],
+		[1, 120, 130, 450]
+	], columns=[cn.road, cn.slk_from, cn.slk_to, cn.value])
+	
+	plot_seg_vs_merged(seg, dat)
+
+
