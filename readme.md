@@ -1,10 +1,7 @@
 # dtimsprep<!-- omit in toc -->
 
 - [1. Introduction](#1-introduction)
-- [2. How to Use](#2-how-to-use)
-  - [2.1. Option 1: install as editable package](#21-option-1-install-as-editable-package)
-  - [2.2. Option 2: Copy Paste](#22-option-2-copy-paste)
-  - [2.3. Option 3: From Wheel](#23-option-3-from-wheel)
+- [2. Installation & Upgrade](#2-installation--upgrade)
 - [3. Modules](#3-modules)
   - [3.1. Submodule Module `merge`](#31-submodule-module-merge)
     - [3.1.1. Merge Action (`merge.Action`)](#311-merge-action-mergeaction)
@@ -21,27 +18,29 @@ preparation of data for the dTIMS modelling process.
 
 This package depends on Pandas (tested with version 1.3.1)
 
-## 2. How to Use
+## 2. Installation & Upgrade
 
-### 2.1. Option 1: install as editable package
+To install:
 
-Clone this repo, then use the following command to install the package in "editable mode"
-
-```bash
-pip install -e .
+```powershell
+pip install "git+https://github.com/thehappycheese/dtimsprep.git#egg=dtimsprep"
 ```
 
-### 2.2. Option 2: Copy Paste
+To Upgrade:
 
-Clone this repo, then copy-paste the `dtimsprep` folder from `./src/` into your python project directory, use as normal.
+```powershell
+pip install --upgrade "git+https://github.com/thehappycheese/dtimsprep.git#egg=dtimsprep"
+```
 
-### 2.3. Option 3: From Wheel
+To show installed version:
 
-In the future this package will be available in the "releases" section of github as a 'wheel'
+```powershell
+pip show dtimsprep
+```
 
 ## 3. Modules
 
-### 3.1. Submodule Module `merge`
+### 3.1. Module `merge`
 
 The merge module contains the main function `on_slk_intervals` as well as
 several helper classes.
@@ -154,6 +153,7 @@ df.to_csv(timestamp_filename("important_data.csv"))
 ```
 
 ### 3.4. Module `unit_conversion`
+
 contains a single function reproduced here in full:
 
 ```python
