@@ -1,9 +1,9 @@
 # dtimsprep<!-- omit in toc -->
 
 - [1. Introduction](#1-introduction)
-- [2. Installation & Upgrade](#2-installation--upgrade)
+- [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Modules](#3-modules)
-  - [3.1. Submodule Module `merge`](#31-submodule-module-merge)
+  - [3.1. Module `merge`](#31-module-merge)
     - [3.1.1. Merge Action (`merge.Action`)](#311-merge-action-mergeaction)
     - [3.1.2. Aggregation Type (`merge.Aggregation`)](#312-aggregation-type-mergeaggregation)
   - [3.2. Module `lookups`](#32-module-lookups)
@@ -18,24 +18,30 @@ preparation of data for the dTIMS modelling process.
 
 This package depends on Pandas (tested with version 1.3.1)
 
-## 2. Installation & Upgrade
+## 2. Install, Upgrade, Uninstall
 
 To install:
 
 ```powershell
-pip install "git+https://github.com/thehappycheese/dtimsprep.git#egg=dtimsprep"
+pip install "https://github.com/thehappycheese/dtimsprep/zipball/main/"
 ```
 
 To Upgrade:
 
 ```powershell
-pip install --upgrade "git+https://github.com/thehappycheese/dtimsprep.git#egg=dtimsprep"
+pip install --upgrade "https://github.com/thehappycheese/dtimsprep/zipball/main"
 ```
 
 To show installed version:
 
 ```powershell
 pip show dtimsprep
+```
+
+To remove:
+
+```powershell
+pip uninstall dtimsprep
 ```
 
 ## 3. Modules
@@ -146,9 +152,14 @@ df.to_csv(timestamp_filename("important_data.csv"))
 
 ### 3.4. Module `unit_conversion`
 
+Currently this module contains a single function:
+
 contains a single function reproduced here in full:
 
 ```python
+from dtims_prep.unit_conversion import km_to_meters
+
+df["slk_from"] = segmentation["slk_from"].apply(km_to_meters)
 def km_to_meters(km: pandas.Series):
     """
     Converts a pandas Series object from floating point values to integer values, 
