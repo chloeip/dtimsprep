@@ -77,10 +77,7 @@ Normally this would only ever be used as part of a call to the
 import dtims_prep.merge
 
 result = merge.on_slk_intervals(
-    target=...,
-    data=...,
-    join_left=...,
-    from_to=..., 
+    ..., 
     column_actions = [
         merge.Action(column_name='column1', aggregation=merge.Aggregation.KeepLongest(), rename="column1_longest"),
         merge.Action('column1', merge.Aggregation.LengthWeightedAverage(), "column1_avg"),
@@ -94,7 +91,7 @@ result = merge.on_slk_intervals(
 | ----------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | column_name | `str`               | Name of column to aggregate in the `data` dataframe                                                                                          |
 | aggregation | `merge.Aggregation` | One of the available merge aggregations described in the section below.                                                                      |
-| rename      | `str`               | New name for aggregated column in the result dataframe. Note that this allows you to output multiple aggregations from a single input column |
+| rename      | `Optional[str]`     | New name for aggregated column in the result dataframe. Note that this allows you to output multiple aggregations from a single input column. Can be omitted. |
 
 
 #### 3.1.2. Aggregation Type (`merge.Aggregation`)
@@ -103,6 +100,7 @@ The following merge aggregations are supported:
 
 | Constructor                                                   | Purpose                                                                                                                                    |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `merge.Aggregation.First()`                                   | Keep the first non-blank value.                                                                                                            |
 | `merge.Aggregation.KeepLongest()`                             | Keep the longest non-blank value.                                                                                                          |
 | `merge.Aggregation.LengthWeightedAverage()`                   | Compute the length weighted average of non-blank values                                                                                    |
 | `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                        |
@@ -152,7 +150,7 @@ df.to_csv(timestamp_filename("important_data.csv"))
 
 ### 3.4. Module `unit_conversion`
 
-Currently this module contains a single function:
+Currently, this module contains a single function:
 
 contains a single function reproduced here in full:
 
