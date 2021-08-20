@@ -77,12 +77,13 @@ def plot_seg_vs_merged(seg, dat, test_name):
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedAverage(), rename="l w average"),
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.75), rename="75th percentile"),
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.5), rename="50th percentile"),
-			merge.Action(cn.value, merge.Aggregation.Average(), rename="Average")
+			merge.Action(cn.value, merge.Aggregation.Average(), rename="Average"),
+			merge.Action(cn.value, merge.Aggregation.First(), rename="First")
 		]
 	)
 	
 	fig:plt.Figure
-	fig, axs = plt.subplots(2, 3, sharex='all', sharey='all')
+	fig, axs = plt.subplots(2, 4, sharex='all', sharey='all')
 	
 	fig.set_size_inches(w=16.5, h=11.7)
 	
@@ -92,6 +93,7 @@ def plot_seg_vs_merged(seg, dat, test_name):
 	plot_dist(axs[1, 0], mer, title="75th Percentile (Length Weighted)", height=mer["75th percentile"])
 	plot_dist(axs[1, 1], mer, title="50th Percentile (Length Weighted)", height=mer["50th percentile"])
 	plot_dist(axs[1, 2], mer, title="Average", height=mer["Average"])
+	plot_dist(axs[0, 3], mer, title="First", height=mer["First"])
 	
 	plt.tight_layout()
 	plt.savefig(
