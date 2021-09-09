@@ -56,11 +56,11 @@ res = merge.on_slk_intervals(
 	data,
 	["road","cwy"],
 	[
-		merge.Action('measure_a', rename="longest",    aggregation=merge.Aggregation.KeepLongest()),
+		merge.Action('measure_a', rename="longest segment",    aggregation=merge.Aggregation.KeepLongestSegment()),
 		merge.Action('measure_a', rename="mean",       aggregation=merge.Aggregation.Average()),
 		merge.Action('measure_a', rename="lenw_mean",  aggregation=merge.Aggregation.LengthWeightedAverage()),
 		merge.Action('measure_a', rename="lenw_prc75", aggregation=merge.Aggregation.LengthWeightedPercentile(0.75)),
-		merge.Action('cat_1',     rename="cat",        aggregation=merge.Aggregation.KeepLongest()),
+		merge.Action('cat_1',     rename="cat",        aggregation=merge.Aggregation.KeepLongestSegment()),
 	]
 )
 

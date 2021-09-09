@@ -73,7 +73,7 @@ def plot_seg_vs_merged(seg, dat, test_name):
 		data=dat,
 		join_left=[cn.road],
 		column_actions=[
-			merge.Action(cn.value, merge.Aggregation.KeepLongest(), rename="longest"),
+			merge.Action(cn.value, merge.Aggregation.KeepLongestSegment(), rename="longest segment"),
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedAverage(), rename="l w average"),
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.75), rename="75th percentile"),
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.5), rename="50th percentile"),
@@ -88,7 +88,7 @@ def plot_seg_vs_merged(seg, dat, test_name):
 	fig.set_size_inches(w=16.5, h=11.7)
 	
 	plot_dist(axs[0, 0], dat, title="Original", height=dat[cn.value])
-	plot_dist(axs[0, 1], mer, title="Keep Longest", height=mer["longest"])
+	plot_dist(axs[0, 1], mer, title="Keep Longest Segment", height=mer["longest segment"])
 	plot_dist(axs[0, 2], mer, title="Length Weighted Average", height=mer["l w average"])
 	plot_dist(axs[1, 0], mer, title="75th Percentile (Length Weighted)", height=mer["75th percentile"])
 	plot_dist(axs[1, 1], mer, title="50th Percentile (Length Weighted)", height=mer["50th percentile"])

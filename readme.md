@@ -44,9 +44,9 @@ To remove:
 pip uninstall dtimsprep
 ```
 
-## 3. Modules
 
-### 3.1. Module `merge`
+
+## 3. Module `merge`
 
 The merge module contains the main function `on_slk_intervals` as well as
 several helper classes.
@@ -65,7 +65,7 @@ result = merge.on_slk_intervals(target, data, join_left, column_actions, from_to
 | column_actions | `list[merge.Action]` | A list of `merge.Action()` objects describing the aggregation to be used for each column of data that is to be added to the target. See examples below.                                                                                                                                                                                                                                   |
 | from_to        | `list[str]`          | the name of the start and end interval measures.<br>Typically `["slk_from", "slk_to"]`.<br>Note:<ul><li>These column names must match in both the `target` and `data` DataFrames</li><li>These columns should be converted to integers for reliable results prior to calling merge (see example below. The `unit_conversion.km_to_meters()` function is used for this purpose.)</li></ul> |
 
-#### 3.1.1. Merge Action (`merge.Action`)
+### 3.1. Merge Action (`merge.Action`)
 
 The `merge.Action` class is used to specify how a new column will be added to
 the `target`.
@@ -87,31 +87,31 @@ result = merge.on_slk_intervals(
 
 ```
 
-| Parameter   | Type                | Note                                                                                                                                         |
-| ----------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| column_name | `str`               | Name of column to aggregate in the `data` dataframe                                                                                          |
-| aggregation | `merge.Aggregation` | One of the available merge aggregations described in the section below.                                                                      |
+| Parameter   | Type                | Note                                                                                                                                                          |
+| ----------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| column_name | `str`               | Name of column to aggregate in the `data` dataframe                                                                                                           |
+| aggregation | `merge.Aggregation` | One of the available merge aggregations described in the section below.                                                                                       |
 | rename      | `Optional[str]`     | New name for aggregated column in the result dataframe. Note that this allows you to output multiple aggregations from a single input column. Can be omitted. |
 
-
-#### 3.1.2. Aggregation Type (`merge.Aggregation`)
+### 3.2. Aggregation Type (`merge.Aggregation`)
 
 The following merge aggregations are supported:
 
 | Constructor                                                   | Purpose                                                                                                                                    |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `merge.Aggregation.First()`                                   | Keep the first non-blank value.                                                                                                            |
-| `merge.Aggregation.KeepLongest()`                             | Keep the longest non-blank value. **See Notes below**                                                                                                          |
+| `merge.Aggregation.KeepLongestSegment()`                      | Keep the longest non-blank segment. (Ignores value)                                                                     |
+| `merge.Aggregation.KeepLongestValue()`                        | Keep the longest non-blank value. (Will allow for repeated values making up the longest length)                                                                       |
 | `merge.Aggregation.LengthWeightedAverage()`                   | Compute the length weighted average of non-blank values                                                                                    |
 | `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                        |
 | `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile. |
 
+### 3.3. Notes about `Aggregation.KeepLongestSegment()`
 
-### Notes about `Aggregation.KeepLongest()`
+`KeepLongestSegment()` works by observing only the segment length of the data to be merged.
+If all segments are the same length, then the first segment to appear in the data input table will be selected.
 
-`KeepLongest()` currently works by observing only the segment length of the data to be merged.
-If all segments are the same length then behaviour is undefined. It will just select any of the matching data rows to be merged.
-if the data to be merged has several short segments with the same value, which together form the 'longest' value then
+If the data to be merged has several short segments with the same value, which together form the 'longest' value then
 the output may not be the "longest value". For example in the situation below, one might expect that the output would be `99`,
 instead it is `55` which is the single longest overlapping segment.
 
@@ -121,7 +121,7 @@ Data segment:      |=======55=======|==99==|==99==|==99==|==11==|
 Keep longest:              55
 ```
 
-To address this unexpected behaviour there is a planned future feature called `Aggregation.KeepLongestValue()`.
+There is a new and improved function `Aggregation.KeepLongestValue()` which addresses the behaviour above.
 
 ## 4. Full Example
 
