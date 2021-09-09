@@ -7,11 +7,12 @@ import pandas as pd
 
 
 class AggregationType(Enum):
-	KeepLongest = 1
-	Average = 2
-	LengthWeightedAverage = 3
-	LengthWeightedPercentile = 4
-	First = 5
+	KeepLongestSegment = 1  # Deprecated
+	KeepLongest = 2
+	Average = 3
+	LengthWeightedAverage = 4
+	LengthWeightedPercentile = 5
+	First = 6
 
 
 class Aggregation:
@@ -25,6 +26,11 @@ class Aggregation:
 	@staticmethod
 	def First():
 		return Aggregation(AggregationType.First)
+	
+	@staticmethod
+	def KeepLongestSegment():
+		print("WARNING KeepLongestSegment is deprecated please do not use this function. it is kept here for testing but is to be removed in future versions.")
+		return Aggregation(AggregationType.KeepLongestSegment)
 	
 	@staticmethod
 	def KeepLongest():
@@ -43,7 +49,7 @@ class Aggregation:
 		if percentile > 1.0 or percentile < 0.0:
 			raise ValueError(
 				f"Percentile out of range. Must be greater than 0.0 and less than 1.0. Got {percentile}." +
-				(" Did you need to divide by 100?" if percentile > 1.0 else "")
+				(" Do you need to divide by 100?" if percentile > 1.0 else "")
 			)
 		return Aggregation(
 			AggregationType.LengthWeightedPercentile,
@@ -76,7 +82,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 	# Group target data by Road Number and Carriageway
 	try:
 		target_groups = target.groupby(join_left)
-	except KeyError as e:
+	except KeyError:
 		matching_columns = [col for col in join_left if col in target.columns]
 		raise Exception(f"Parameter join_left={join_left} did not match" + (
 			" any columns in the target DataFrame" if len(matching_columns) == 0
@@ -152,11 +158,14 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 						(column_to_aggregate * column_to_aggregate_overlap_len).sum() / total_overlap_length
 					)
 				
-				elif column_action.aggregation.type == AggregationType.KeepLongest:
+				elif column_action.aggregation.type == AggregationType.KeepLongestSegment:
 					aggregated_result_row.append(
 						column_to_aggregate.loc[column_to_aggregate_overlap_len.idxmax()]
 					)
-				
+				elif column_action.aggregation.type == AggregationType.KeepLongest:
+					aggregated_result_row.append(
+						column_to_aggregate_overlap_len.groupby(column_to_aggregate).sum().idxmax()
+					)
 				elif column_action.aggregation.type == AggregationType.LengthWeightedPercentile:
 					
 					column_len_to_aggregate = column_len_to_aggregate.sort_values(
