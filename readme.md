@@ -101,11 +101,27 @@ The following merge aggregations are supported:
 | Constructor                                                   | Purpose                                                                                                                                    |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `merge.Aggregation.First()`                                   | Keep the first non-blank value.                                                                                                            |
-| `merge.Aggregation.KeepLongest()`                             | Keep the longest non-blank value.                                                                                                          |
+| `merge.Aggregation.KeepLongest()`                             | Keep the longest non-blank value. **See Notes below**                                                                                                          |
 | `merge.Aggregation.LengthWeightedAverage()`                   | Compute the length weighted average of non-blank values                                                                                    |
 | `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                        |
 | `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile. |
 
+
+### Notes about `Aggregation.KeepLongest()`
+
+`KeepLongest()` currently works by observing only the segment length of the data to be merged.
+If all segments are the same length then behaviour is undefined. It will just select any of the matching data rows to be merged.
+if the data to be merged has several short segments with the same value, which together form the 'longest' value then
+the output may not be the "longest value". For example in the situation below, one might expect that the output would be `99`,
+instead it is `55` which is the single longest overlapping segment.
+
+```
+Target Segment:          |==============================|
+Data segment:      |=======55=======|==99==|==99==|==99==|==11==|
+Keep longest:              55
+```
+
+To address this unexpected behaviour there is a planned future feature called `Aggregation.KeepLongestValue()`.
 
 ## 4. Full Example
 
