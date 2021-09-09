@@ -184,3 +184,32 @@ def test_plot_3():
 	plot_seg_vs_merged(seg, dat, "test_plot_3")
 
 
+def test_plot_4():
+	seg = pd.DataFrame([
+		[1, 10, 20],
+		[1, 20, 30],
+		[1, 30, 40],
+	], columns=[cn.road, cn.slk_from, cn.slk_to])
+	
+	dat = pd.DataFrame([
+		[1, 0, 15, 300],
+		[1, 15, 35, 500],
+		[1, 35, 50, 400],
+	], columns=[cn.road, cn.slk_from, cn.slk_to, cn.value])
+	
+	plot_seg_vs_merged(seg, dat, "test_plot_4")
+
+
+def test_plot_5():
+	seg = pd.DataFrame([
+		[1, 10, 90],
+	], columns=[cn.road, cn.slk_from, cn.slk_to])
+	
+	dat = pd.DataFrame([
+		[1, 5, 40, 400],
+		[1, 40, 50, 500],
+		[1, 50, 95, 300],
+	
+	], columns=[cn.road, cn.slk_from, cn.slk_to, cn.value])
+	
+	plot_seg_vs_merged(seg, dat, "test_plot_5")

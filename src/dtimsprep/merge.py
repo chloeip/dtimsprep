@@ -97,6 +97,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			print(data)
 			raise e
 		
+		# Iterate row by row through the target group
 		for target_index, target_row in target_group.iterrows():
 			
 			# Select data with overlapping slk interval
@@ -109,14 +110,14 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			if data_to_aggregate_for_target_group.empty:
 				continue
 			
-			# compute overlap metrics for each row of data
+			# compute overlaps for each row of data
 			overlap_min = np.maximum(data_to_aggregate_for_target_group[slk_from], target_row[slk_from])
 			overlap_max = np.minimum(data_to_aggregate_for_target_group[slk_to], target_row[slk_to])
 			
-			# overlap_len = np.maximum(overlap_max - overlap_min, 0) #
+			# overlap_len = np.maximum(overlap_max - overlap_min, 0)
 			overlap_len = overlap_max - overlap_min
 			
-			# expect this to trigger warning
+			# expect this to trigger warning ?
 			data_to_aggregate_for_target_group["overlap_len"] = overlap_len
 			
 			# for each column of data that we keep, we must aggregate each field down to a single value

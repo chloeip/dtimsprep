@@ -52,7 +52,7 @@ The merge module contains the main function `on_slk_intervals` as well as
 several helper classes.
 
 ```python
-import dtims_prep.merge
+import dtimsprep.merge as merge
 
 result = merge.on_slk_intervals(target, data, join_left, column_actions, from_to)
 ```
@@ -74,14 +74,14 @@ Normally this would only ever be used as part of a call to the
 `on_slk_intervals` function as shown below:
 
 ```python
-import dtims_prep.merge
+import dtimsprep.merge as merge
 
 result = merge.on_slk_intervals(
     ..., 
     column_actions = [
-        merge.Action(column_name='column1', aggregation=merge.Aggregation.KeepLongest(), rename="column1_longest"),
-        merge.Action('column1', merge.Aggregation.LengthWeightedAverage(), "column1_avg"),
-        merge.Action('column2', merge.Aggregation.LengthWeightedPercentile()),
+        merge.Action(column_name="column1", aggregation=merge.Aggregation.KeepLongest(), rename="column1_longest"),
+        merge.Action("column1", merge.Aggregation.LengthWeightedAverage(), "column1_avg"),
+        merge.Action("column2", merge.Aggregation.LengthWeightedPercentile(0.75)),
     ]
 )
 
@@ -106,72 +106,12 @@ The following merge aggregations are supported:
 | `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                        |
 | `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile. |
 
-### 3.2. Module `lookups`
-
-Contains a class called `standard_column_names` which is meant to be used
-instead of string literals when manipulating pandas dataframes.
-
-```python
-import pandas as pd
-from dtimsprep.lookups import standard_column_names as CN
-
-df1 = pd.read_csv("./some.csv")
-df1 = df1.rename(columns={
-    "ROAD":CN.road_number
-})
-
-df2 = pd.read_csv("./other.csv")
-df2 = df2.rename(columns={
-    "RoadNo":CN.road_number
-})
-
-# after renaming, you can reliably refer to the same field in both dataframes as below:
-df1[CN.road_number]
-df2[CN.road_number]
-```
-
-### 3.3. Module `timestamp`
-
-Contains a convenience function for timestamping file outputs by prefixing a provided `filename` with
-`YYYY MM DD HHMM filename`:
-
-```python
-import pandas as pd
-from dtimsprep.timestamp import timestamp_filename
-
-df = pd.DataFrame({
-    "col1":[1,2,3],
-    "col2":[3,4,5]
-})
-
-df.to_csv(timestamp_filename("important_data.csv"))
-# Saves: `2021 05 08 1522 important_data.csv`
-```
-
-### 3.4. Module `unit_conversion`
-
-Currently, this module contains a single function:
-
-contains a single function reproduced here in full:
-
-```python
-from dtims_prep.unit_conversion import km_to_meters
-
-df["slk_from"] = segmentation["slk_from"].apply(km_to_meters)
-def km_to_meters(km: pandas.Series):
-    """
-    Converts a pandas Series object from floating point values to integer values, 
-    multiplying by 1000.
-    Fails if there are NaN or Inf values in the series."""
-    return (km * 1000.0).round().astype('i4')
-```
 
 ## 4. Full Example
 
 ```python
 import pandas as pd
-import dtims_prep.merge as merge
-from dtims_prep.unit_conversion import km_to_meters
+import dtimsprep.merge as merge
 
 # =====================================================
 # Use a data class to hold some standard column names
@@ -203,7 +143,8 @@ segmentation = segmentation.rename(columns={
 segmentation = segmentation.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
-segmentation[[CN.slk_from, CN.slk_to]] = segmentation[[CN.slk_from,CN.slk_to]].apply(km_to_meters)
+segmentation[CN.slk_from] = (segmentation[CN.slk_from]/1000.0).astype("int")
+segmentation[CN.slk_to] = (segmentation[CN.slk_to]/1000.0).astype("int")
 
 # =====================================================
 # load data to be merged
@@ -224,7 +165,8 @@ pavement_data = pavement_data.rename(columns={
 pavement_data = pavement_data.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
-pavement_data[[CN.slk_from, CN.slk_to]] = pavement_data[[CN.slk_from, CN.slk_to]].apply(km_to_meters)
+pavement_data[CN.slk_from] = (pavement_data[CN.slk_from]/1000.0).astype("int")
+pavement_data[CN.slk_to] = (pavement_data[CN.slk_to]/1000.0).astype("int")
 
 # =====================================================
 # Execute the merge:
@@ -241,5 +183,5 @@ segmentation_pavement = merge.on_slk_intervals(
     from_to=[CN.slk_from, CN.slk_to]
 )
 
-segmentation_pavement.to_csv(timestamp_filename("output.csv"))
+segmentation_pavement.to_csv("output.csv")
 ```
