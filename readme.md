@@ -3,11 +3,11 @@
 - [1. Introduction](#1-introduction)
 - [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Module `merge`](#3-module-merge)
-    - [3.1. Merge Action (`merge.Action`)](#31-merge-action-mergeaction)
-    - [3.2. Aggregation Type (`merge.Aggregation`)](#32-aggregation-type-mergeaggregation)
-        - [3.2.1. Notes: `Aggregation.KeepLongest()`](#321-notes-aggregationkeeplongest)
-        - [3.2.2. Notes: `Aggregation.KeepLongestSegment()`](#322-notes-aggregationkeeplongestsegment)
-- [4. Full Example](#4-full-example)
+  - [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
+  - [3.2. Class `merge.Action`](#32-class-mergeaction)
+  - [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
+    - [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
+- [4. Practical Example of Merge](#4-practical-example-of-merge)
 
 ## 1. Introduction
 
@@ -43,6 +43,8 @@ pip uninstall dtimsprep
 ```
 
 ## 3. Module `merge`
+
+### 3.1. Function `merge.on_slk_intervals()`
 
 The following code demonstrates `merge.on_slk_intervals()` by merging the dummy
 dataset `pavement_data` against the target `segmentation` dataframe.
@@ -100,7 +102,7 @@ assert result.compare(
 | column_actions | `list[merge.Action]` | A list of `merge.Action()` objects describing the aggregation to be used for each column of data that is to be added to the target. See examples below.                                                                                                                                                                                                                                   |
 | from_to        | `list[str]`          | the name of the start and end interval measures.<br>Typically `["slk_from", "slk_to"]`.<br>Note:<ul><li>These column names must match in both the `target` and `data` DataFrames</li><li>These columns should be converted to integers for reliable results prior to calling merge (see example below. The `unit_conversion.km_to_meters()` function is used for this purpose.)</li></ul> |
 
-### 3.1. Merge Action (`merge.Action`)
+### 3.2. Class `merge.Action`
 
 The `merge.Action` class is used to specify how a new column will be added to
 the `target`.
@@ -128,7 +130,7 @@ result = merge.on_slk_intervals(
 | aggregation | `merge.Aggregation` | One of the available merge aggregations described in the section below.                                                                                       |
 | rename      | `Optional[str]`     | New name for aggregated column in the result dataframe. Note that this allows you to output multiple aggregations from a single input column. Can be omitted. |
 
-### 3.2. Aggregation Type (`merge.Aggregation`)
+### 3.3. Class `merge.Aggregation`
 
 The following merge aggregations are supported:
 
@@ -140,7 +142,7 @@ The following merge aggregations are supported:
 | `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                        |
 | `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile. |
 
-#### 3.2.1. Notes about `Aggregation.KeepLongest()`
+#### 3.3.1. Notes about `Aggregation.KeepLongest()`
 
 `KeepLongest()` works by observing both the segment lengths and segment values
 for data rows matching a particular target segment.
@@ -175,7 +177,7 @@ weirdness will cause misbehaviour for the KeepLongest aggregation. Internally
 the pandas Series.groupby() function is used to choose the longest segment by
 grouping by segment values.
 
-## 4. Full Example
+## 4. Practical Example of Merge
 
 ```python
 import pandas as pd
