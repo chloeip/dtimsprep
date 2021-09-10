@@ -75,10 +75,11 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 	result_index = []
 	result_rows = []
 	
-	# reindex data for faster lookup
-	data['data_id'] = data.index
+	# ReIndex data for faster O(N) lookup
+	data = data.assign(data_id=data.index)
 	data = data.set_index([*join_left, 'data_id'])
 	data = data.sort_index()
+	
 	# Group target data by Road Number and Carriageway
 	try:
 		target_groups = target.groupby(join_left)
@@ -88,6 +89,8 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			" any columns in the target DataFrame" if len(matching_columns) == 0
 			else f" all columns in target DataFrame. Only matched columns {matching_columns}"
 		))
+	
+	# Main Loop
 	for target_group_index, target_group in target_groups:
 		try:
 			data_matching_target_group = data.loc[target_group_index]

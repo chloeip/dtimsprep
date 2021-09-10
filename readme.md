@@ -3,10 +3,10 @@
 - [1. Introduction](#1-introduction)
 - [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Module `merge`](#3-module-merge)
-	- [3.1. Merge Action (`merge.Action`)](#31-merge-action-mergeaction)
-	- [3.2. Aggregation Type (`merge.Aggregation`)](#32-aggregation-type-mergeaggregation)
-		- [3.2.1. Notes: `Aggregation.KeepLongest()`](#321-notes-aggregationkeeplongest)
-		- [3.2.2. Notes: `Aggregation.KeepLongestSegment()`](#322-notes-aggregationkeeplongestsegment)
+    - [3.1. Merge Action (`merge.Action`)](#31-merge-action-mergeaction)
+    - [3.2. Aggregation Type (`merge.Aggregation`)](#32-aggregation-type-mergeaggregation)
+        - [3.2.1. Notes: `Aggregation.KeepLongest()`](#321-notes-aggregationkeeplongest)
+        - [3.2.2. Notes: `Aggregation.KeepLongestSegment()`](#322-notes-aggregationkeeplongestsegment)
 - [4. Full Example](#4-full-example)
 
 ## 1. Introduction
@@ -42,17 +42,54 @@ To remove:
 pip uninstall dtimsprep
 ```
 
-
-
 ## 3. Module `merge`
 
-The merge module contains the main function `on_slk_intervals` as well as
-several helper classes.
+The following code demonstrates `merge.on_slk_intervals()` by merging the dummy
+dataset `pavement_data` against the target `segmentation` dataframe.
 
 ```python
-import dtimsprep.merge as merge
+segmentation = pd.DataFrame(
+    columns=["road_no", "carriageway", "slk_from", "slk_to"],
+    data=[
+        ["H001", "L",  10,  50],
+        ["H001", "L",  50, 100],
+        ["H001", "L", 100, 150],
+    ]
+)
 
-result = merge.on_slk_intervals(target, data, join_left, column_actions, from_to)
+pavement_data = pd.DataFrame(
+    columns=["road_no", "carriageway", "slk_from", "slk_to", "pavement_width", "pavement_type"],
+    data=[
+        ["H001", "L",  00,  10, 3.10,  "tA"],
+        ["H001", "L",  10,  20, 4.00,  "tA"],
+        ["H001", "L",  20,  40, 3.50,  "tA"],
+        ["H001", "L",  40,  80, 3.80,  "tC"],
+        ["H001", "L",  80, 130, 3.10,  "tC"],
+        ["H001", "L", 130, 140, 3.00,  "tB"],
+    ]
+)
+
+result = merge.on_slk_intervals(
+    target=segmentation,
+    data=pavement_data,
+    join_left=["road_no", "carriageway"],
+    column_actions=[
+        merge.Action("pavement_width",  merge.Aggregation.LengthWeightedAverage()),
+        merge.Action("pavement_type",   merge.Aggregation.KeepLongest())
+    ],
+    from_to=("slk_from", "slk_to")
+)
+assert result.compare(
+    pd.DataFrame(
+        columns=["road_no", "carriageway", "slk_from", "slk_to", "pavement_width", "pavement_type"],
+        data=[
+            ["H001", "L",  10,  50, 3.700, "tA"],
+            ["H001", "L",  50, 100, 3.520, "tC"],
+            ["H001", "L", 100, 150, 3.075, "tC"],
+        ]
+    )
+).empty
+
 ```
 
 | Parameter      | Type                 | Note                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -105,30 +142,38 @@ The following merge aggregations are supported:
 
 #### 3.2.1. Notes about `Aggregation.KeepLongest()`
 
-`KeepLongest()` works by observing both the segment lenghts and segment values
+`KeepLongest()` works by observing both the segment lengths and segment values
 for data rows matching a particular target segment.
 
-**Note 1:** If all segments are the same length, then the first segment to
-appear in the data input table will be selected.
+**Note 1:** If all segments are the same length but have different values, then
+the first segment to appear in the data input table will be selected. This
+'select first' behaviour is determined by the internal behaviour of pandas and
+numpy and should not be relied upon to stay consistent in the future. Any random
+segment may be chosen:
 
-```
+```text
 Target Segment:       |===========================|
 Data Segments:        |==33==|==55==|==66==|==77==|
-KeepLongestSegment:      33
+KeepLongest:             33
 ```
 
 **Note 2:** If the data to be merged has several short segments with the same
 value, which together form the 'longest' value then this longest value will be
-selected. For example in the situation below the data segement `55` is the
-longest individual segment, but `99` is the longest value. The result is
+selected. For example in the situation below the data segment `55` is the
+longest individual *segment*, but `99` is the longest *value*. The result is
 therefore `99`.
 
-```
+```text
 Target Segment:          |==============================|
 Data segment:      |=======55=======|==99==|==99==|==99==|==11==|
 KeepLongest:                           99
 ```
 
+**Note 3:** No rounding is performed to facilitate the behaviour described in
+Note 2. Data must be pre-processed if it is expected that floating point
+weirdness will cause misbehaviour for the KeepLongest aggregation. Internally
+the pandas Series.groupby() function is used to choose the longest segment by
+grouping by segment values.
 
 ## 4. Full Example
 
@@ -167,7 +212,7 @@ segmentation = segmentation.dropna(subset=[CN.road_number, CN.carriageway, CN.sl
 
 # Convert SLKs to meters and round to integer
 segmentation[CN.slk_from] = (segmentation[CN.slk_from]/1000.0).astype("int")
-segmentation[CN.slk_to] = (segmentation[CN.slk_to]/1000.0).astype("int")
+segmentation[CN.slk_to]   = (segmentation[CN.slk_to]/1000.0).astype("int")
 
 # =====================================================
 # load data to be merged
@@ -189,7 +234,7 @@ pavement_data = pavement_data.dropna(subset=[CN.road_number, CN.carriageway, CN.
 
 # Convert SLKs to meters and round to integer
 pavement_data[CN.slk_from] = (pavement_data[CN.slk_from]/1000.0).astype("int")
-pavement_data[CN.slk_to] = (pavement_data[CN.slk_to]/1000.0).astype("int")
+pavement_data[CN.slk_to]   = (pavement_data[CN.slk_to]/1000.0).astype("int")
 
 # =====================================================
 # Execute the merge:
