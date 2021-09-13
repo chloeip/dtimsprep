@@ -140,8 +140,8 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 				]
 				
 				if column_len_to_aggregate.empty:
-					# Infill with none or we will lose our column position.
-					aggregated_result_row.append(None)
+					# Infill with np.nan or we will lose our column position.
+					aggregated_result_row.append(np.nan)
 					continue
 				
 				column_to_aggregate: pandas.Series = column_len_to_aggregate.iloc[:, 0]
