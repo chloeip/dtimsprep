@@ -78,7 +78,8 @@ def plot_seg_vs_merged(seg, dat, test_name):
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.75), rename="75th percentile"),
 			merge.Action(cn.value, merge.Aggregation.LengthWeightedPercentile(0.5), rename="50th percentile"),
 			merge.Action(cn.value, merge.Aggregation.Average(), rename="Average"),
-			merge.Action(cn.value, merge.Aggregation.First(), rename="First")
+			merge.Action(cn.value, merge.Aggregation.First(), rename="First"),
+			merge.Action(cn.value, merge.Aggregation.ProportionalSum(), rename="PropSum")
 		]
 	)
 	
@@ -94,6 +95,7 @@ def plot_seg_vs_merged(seg, dat, test_name):
 	plot_dist(axs[1, 1], mer, title="50th Percentile (Length Weighted)", height=mer["50th percentile"])
 	plot_dist(axs[1, 2], mer, title="Average", height=mer["Average"])
 	plot_dist(axs[0, 3], mer, title="First", height=mer["First"])
+	plot_dist(axs[1, 3], mer, title="ProportionalSum", height=mer["PropSum"])
 	
 	plt.tight_layout()
 	plt.savefig(

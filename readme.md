@@ -3,11 +3,12 @@
 - [1. Introduction](#1-introduction)
 - [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Module `merge`](#3-module-merge)
-  - [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
-  - [3.2. Class `merge.Action`](#32-class-mergeaction)
-  - [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
-    - [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
+	- [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
+	- [3.2. Class `merge.Action`](#32-class-mergeaction)
+	- [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
+		- [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
 - [4. Practical Example of Merge](#4-practical-example-of-merge)
+- [5. Known Issues](#5-known-issues)
 
 ## 1. Introduction
 
@@ -134,13 +135,14 @@ result = merge.on_slk_intervals(
 
 The following merge aggregations are supported:
 
-| Constructor                                                   | Purpose                                                                                                                                    |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `merge.Aggregation.First()`                                   | Keep the first non-blank value.                                                                                                            |
-| `merge.Aggregation.KeepLongest()`                             | Keep the longest non-blank value. see notes below                                                                                          |
-| `merge.Aggregation.LengthWeightedAverage()`                   | Compute the length weighted average of non-blank values                                                                                    |
-| `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                        |
-| `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile. |
+| Constructor                                                   | Purpose                                                                                                                                                               |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `merge.Aggregation.First()`                                   | Keep the first non-blank value.                                                                                                                                       |
+| `merge.Aggregation.KeepLongest()`                             | Keep the longest non-blank value. see notes below                                                                                                                     |
+| `merge.Aggregation.LengthWeightedAverage()`                   | Compute the length weighted average of non-blank values                                                                                                               |
+| `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                                                   |
+| `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile.                            |
+| `merge.Aggregation.ProportionalSum()`                         | Compute the sum of all data overlapping the target segment; The value of each segment is multiplied by the proportion of that segment overlapping the target segment. |
 
 #### 3.3.1. Notes about `Aggregation.KeepLongest()`
 
@@ -255,3 +257,7 @@ segmentation_pavement = merge.on_slk_intervals(
 
 segmentation_pavement.to_csv("output.csv")
 ```
+
+## 5. Known Issues
+
+- If the values of `slk_from` > `slk_to` in either the data or the target segmentation, the merge will create invalid output.

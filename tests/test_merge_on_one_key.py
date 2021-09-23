@@ -29,12 +29,12 @@ def test_merge_on_one_key():
 	)
 
 	expected_output = pd.DataFrame(
-		columns=["road", "slk_from", "slk_to", "measure longest segment", "measure longest value", "category longest segment", "category longest value"],
+		columns=["road", "slk_from", "slk_to",  "measure longest value",  "category longest value"],
 		data=[
-			["H001", 0, 100, 1.0, 1.0, "A", "A"],
-			["H001", 100, 200, 1.0, 1.0, "A", "B"],
-			["H001", 200, 300, 4.0, 5.0, "B", "C"],
-			["H001", 300, 400, 8.0, 8.0, "F", "F"],
+			["H001",   0, 100,  1.0,  "A"],
+			["H001", 100, 200,  1.0,  "B"],
+			["H001", 200, 300,  5.0,  "C"],
+			["H001", 300, 400,  8.0,  "F"],
 		]
 	)
 

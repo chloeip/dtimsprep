@@ -13,6 +13,7 @@ class AggregationType(Enum):
 	LengthWeightedAverage = 4
 	LengthWeightedPercentile = 5
 	First = 6
+	ProportionalSum = 7
 
 
 class Aggregation:
@@ -55,6 +56,11 @@ class Aggregation:
 			AggregationType.LengthWeightedPercentile,
 			percentile=percentile
 		)
+	
+	@staticmethod
+	def ProportionalSum():
+		"""This is the sum of values overlapping the target segment; The value of each segment is multiplied by the proportion of that segment overlapping the target segment."""
+		return Aggregation(AggregationType.ProportionalSum)
 
 
 class Action:
@@ -113,7 +119,12 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			data_to_aggregate_for_target_group = data_matching_target_group[
 				(data_matching_target_group[slk_from] < target_row[slk_to]) &
 				(data_matching_target_group[slk_to] > target_row[slk_from])
-			].copy()
+			]#.copy()
+			# TODO: the copy function on the line above has a lot to do with the slowness of this algorithm
+			#       because all columns are copied, not just the ones we are aggregating, for wide dataframes
+			#       there is potentially a huge amount of memory allocated and deallocated that doesnt need to be.
+			#       only needs to be copied so that the "overlap_len" column can be added. If we can avoid adding
+			#       this column we might do a lot better.
 			
 			# if no data matches the target group then skip
 			if data_to_aggregate_for_target_group.empty:
@@ -126,14 +137,15 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			# overlap_len = np.maximum(overlap_max - overlap_min, 0)
 			overlap_len = overlap_max - overlap_min
 			
-			# expect this to trigger warning ?
-			data_to_aggregate_for_target_group["overlap_len"] = overlap_len
+			# expect this to trigger warning about setting value on view?
+			# does not seem to. looks like I added a .copy() above.
+			#data_to_aggregate_for_target_group["overlap_len"] = overlap_len
 			
 			# for each column of data that we keep, we must aggregate each field down to a single value
 			# create a blank row to store the result of each column
 			aggregated_result_row = []
 			for column_action_index, column_action in enumerate(column_actions):
-				column_len_to_aggregate: pd.DataFrame = data_to_aggregate_for_target_group.loc[:, [column_action.column_name, "overlap_len"]]
+				column_len_to_aggregate: pd.DataFrame = data_to_aggregate_for_target_group.loc[:, [column_action.column_name]].assign(overlap_len=overlap_len)
 				column_len_to_aggregate = column_len_to_aggregate[
 					~column_len_to_aggregate.iloc[:, 0].isna() &
 					(column_len_to_aggregate["overlap_len"] > 0)
@@ -151,7 +163,6 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					aggregated_result_row.append(
 						column_to_aggregate.mean()
 					)
-				
 				elif column_action.aggregation.type == AggregationType.First:
 					aggregated_result_row.append(column_to_aggregate.iloc[0])
 				
@@ -160,7 +171,6 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					aggregated_result_row.append(
 						(column_to_aggregate * column_to_aggregate_overlap_len).sum() / total_overlap_length
 					)
-				
 				elif column_action.aggregation.type == AggregationType.KeepLongestSegment:
 					aggregated_result_row.append(
 						column_to_aggregate.loc[column_to_aggregate_overlap_len.idxmax()]
@@ -187,6 +197,12 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 						column_to_aggregate
 					)
 					aggregated_result_row.append(result)
+				elif column_action.aggregation.type == AggregationType.ProportionalSum:
+					# total_overlap_length = column_to_aggregate_overlap_len.sum()
+					data_to_aggregate_for_target_group_slk_length = data_to_aggregate_for_target_group[slk_to]-data_to_aggregate_for_target_group[slk_from]
+					aggregated_result_row.append(
+						(column_to_aggregate * column_to_aggregate_overlap_len/data_to_aggregate_for_target_group_slk_length).sum()
+					)
 			
 			result_index.append(target_index)
 			result_rows.append(aggregated_result_row)
