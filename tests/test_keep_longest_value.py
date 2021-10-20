@@ -43,10 +43,10 @@ def test_keep_longest():
 		data,
 		["road", "cwy"],
 		[
-			merge.Action('measure', rename="measure longest segment", aggregation=merge.Aggregation.KeepLongestSegment()),
-			merge.Action('measure', rename="measure longest value", aggregation=merge.Aggregation.KeepLongest()),
+			merge.Action('measure',  rename="measure longest segment",  aggregation=merge.Aggregation.KeepLongestSegment()),
+			merge.Action('measure',  rename="measure longest value",    aggregation=merge.Aggregation.KeepLongest()),
 			merge.Action('category', rename="category longest segment", aggregation=merge.Aggregation.KeepLongestSegment()),
-			merge.Action('category', rename="category longest value", aggregation=merge.Aggregation.KeepLongest()),
+			merge.Action('category', rename="category longest value",   aggregation=merge.Aggregation.KeepLongest()),
 		]
 	)
 	assert res.compare(expected_output).empty

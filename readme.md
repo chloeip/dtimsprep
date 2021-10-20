@@ -1,21 +1,47 @@
 # dtimsprep<!-- omit in toc -->
 
 - [1. Introduction](#1-introduction)
+	- [1.1. Dependancies](#11-dependancies)
+	- [1.2. Correctness, Robustness, Test Coverage and Performance](#12-correctness-robustness-test-coverage-and-performance)
 - [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Module `merge`](#3-module-merge)
 	- [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
 	- [3.2. Class `merge.Action`](#32-class-mergeaction)
 	- [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
 		- [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
-- [4. Practical Example of Merge](#4-practical-example-of-merge)
-- [5. Known Issues](#5-known-issues)
+	- [3.4. Practical Example of Merge](#34-practical-example-of-merge)
+	- [3.5. Known Issues](#35-known-issues)
 
 ## 1. Introduction
 
-`dtimsprep` is a pure python package which contains several modules useful in
+`dtimsprep` is a python package which contains several modules useful in
 the preparation of data for the dTIMS modelling process.
 
-This package depends on Pandas (tested with version 1.3.1)
+Currently only the `merge` module is included, but other modules may be added in the future.
+
+### 1.1. Dependancies
+
+This package depends on Pandas (tested with version 1.3.1) and is most likely to
+work as expected in Python 3.7+.
+
+Note that currently the `pip install` command will not try to install these
+dependencies. This is because I am still learning how to build python packages
+and the setup file was giving me problems when I tried adding dependencies.
+
+### 1.2. Correctness, Robustness, Test Coverage and Performance
+
+This package aims to be as robust as its predecessor; an old VBA Excel Macro.
+The old Macro is well trusted and has a proven track record.
+
+In Pandas/Python there are some trade-offs to be made between robustness and performance:
+The more checking is done for malformed input data, the slower the algorithm. Some known issues are discussed in the `Known Issues` section below.
+
+However, if input data is well formed, then we can test to make sure we get correct outputs.
+Currently there is a limited suit of tests which run using the `pytest` library.
+
+- About 50% of the total functionality is tested
+- The other 50% has been extensively hand checked to confirm outputs are as expected.
+
 
 ## 2. Install, Upgrade, Uninstall
 
@@ -179,7 +205,7 @@ weirdness will cause misbehaviour for the KeepLongest aggregation. Internally
 the pandas Series.groupby() function is used to choose the longest segment by
 grouping by segment values.
 
-## 4. Practical Example of Merge
+### 3.4. Practical Example of Merge
 
 ```python
 import pandas as pd
@@ -258,6 +284,8 @@ segmentation_pavement = merge.on_slk_intervals(
 segmentation_pavement.to_csv("output.csv")
 ```
 
-## 5. Known Issues
+
+
+### 3.5. Known Issues
 
 - If the values of `slk_from` > `slk_to` in either the data or the target segmentation, the merge will create invalid output.
