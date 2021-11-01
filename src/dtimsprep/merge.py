@@ -80,6 +80,9 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 	
 	result_index = []
 	result_rows = []
+
+	if not isinstance(join_left, list):
+		raise Exception("Parameter `join_left` must be a list literal. Tuples and other sequence types will lead to cryptic errors from pandas.")
 	
 	# ReIndex data for faster O(N) lookup
 	data = data.assign(data_id=data.index)
