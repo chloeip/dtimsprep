@@ -14,6 +14,8 @@ class AggregationType(Enum):
 	LengthWeightedPercentile = 5
 	First = 6
 	ProportionalSum = 7
+	Sum = 8
+	IndexOfMax = 9
 
 
 class Aggregation:
@@ -62,6 +64,15 @@ class Aggregation:
 		"""This is the sum of values overlapping the target segment; The value of each segment is multiplied by the proportion of that segment overlapping the target segment."""
 		return Aggregation(AggregationType.ProportionalSum)
 
+	@staticmethod
+	def Sum():
+		"""This is the sum of values touching the target. Even if only part of the value is overlapping the target segment, the entire data value will be added to the sum"""
+		return Aggregation(AggregationType.Sum)
+
+	@staticmethod
+	def IndexOfMax():
+		"""This is the row label of the maximum value detected in the data"""
+		return Aggregation(AggregationType.IndexOfMax)
 
 class Action:
 	def __init__(
@@ -205,6 +216,16 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					data_to_aggregate_for_target_group_slk_length = data_to_aggregate_for_target_group[slk_to]-data_to_aggregate_for_target_group[slk_from]
 					aggregated_result_row.append(
 						(column_to_aggregate * column_to_aggregate_overlap_len/data_to_aggregate_for_target_group_slk_length).sum()
+					)
+				
+				elif column_action.aggregation.type == AggregationType.Sum:
+					aggregated_result_row.append(
+						column_to_aggregate.sum()
+					)
+
+				elif column_action.aggregation.type == AggregationType.IndexOfMax:
+					aggregated_result_row.append(
+						column_to_aggregate.idxmax()
 					)
 			
 			result_index.append(target_index)
