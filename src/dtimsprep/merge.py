@@ -74,6 +74,11 @@ class Aggregation:
 		"""This is the row label of the maximum value detected in the data"""
 		return Aggregation(AggregationType.IndexOfMax)
 
+	# @staticmethod
+	# def SumLengthWeightedAveragePerCategory(category_column_name:str):
+	# 	"""For the set of data matching a target row, get the length weighted average for each category, then sum the results."""
+	# 	return Aggregation(AggregationType.IndexOfMax)
+
 class Action:
 	def __init__(
 			self,
@@ -146,23 +151,28 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			
 			# compute overlaps for each row of data
 			overlap_min = np.maximum(data_to_aggregate_for_target_group[slk_from], target_row[slk_from])
-			overlap_max = np.minimum(data_to_aggregate_for_target_group[slk_to], target_row[slk_to])
+			overlap_max = np.minimum(data_to_aggregate_for_target_group[slk_to],   target_row[slk_to])
 			
-			# overlap_len = np.maximum(overlap_max - overlap_min, 0)
+			# overlap_len = np.maximum(overlap_max - overlap_min, 0)  # np.maximum() is not needed due to filters above
 			overlap_len = overlap_max - overlap_min
 			
 			# expect this to trigger warning about setting value on view?
-			# does not seem to. looks like I added a .copy() above.
-			#data_to_aggregate_for_target_group["overlap_len"] = overlap_len
+			# does not seem to though
+			#data_to_aggregate_for_target_group["overlap_len"] = overlap_len  # Remove this... there is no reason to attached overlap_len to the original dataframe
 			
 			# for each column of data that we keep, we must aggregate each field down to a single value
 			# create a blank row to store the result of each column
 			aggregated_result_row = []
 			for column_action_index, column_action in enumerate(column_actions):
-				column_len_to_aggregate: pd.DataFrame = data_to_aggregate_for_target_group.loc[:, [column_action.column_name]].assign(overlap_len=overlap_len)
+
+				column_len_to_aggregate: pd.DataFrame = (
+					data_to_aggregate_for_target_group
+					.loc[:, [column_action.column_name]]
+					.assign(overlap_len=overlap_len)  # assign is done here so that NaN data can be dropped at the same time as the overlap lengths. Later we also benefit from the combination by being able to concurrently sort both columns.
+				)
 				column_len_to_aggregate = column_len_to_aggregate[
-					~column_len_to_aggregate.iloc[:, 0].isna() &
-					(column_len_to_aggregate["overlap_len"] > 0)
+					~ column_len_to_aggregate.iloc[:, 0].isna() &
+					  (column_len_to_aggregate["overlap_len"] > 0)
 				]
 				
 				if column_len_to_aggregate.empty:
@@ -170,13 +180,14 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					aggregated_result_row.append(np.nan)
 					continue
 				
-				column_to_aggregate: pandas.Series = column_len_to_aggregate.iloc[:, 0]
+				column_to_aggregate:             pandas.Series = column_len_to_aggregate.iloc[:, 0]
 				column_to_aggregate_overlap_len: pandas.Series = column_len_to_aggregate.iloc[:, 1]
 				
-				if column_action.aggregation.type == AggregationType.Average:
+				if column_action.aggregation.type   == AggregationType.Average:
 					aggregated_result_row.append(
 						column_to_aggregate.mean()
 					)
+					
 				elif column_action.aggregation.type == AggregationType.First:
 					aggregated_result_row.append(column_to_aggregate.iloc[0])
 				
@@ -185,23 +196,25 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					aggregated_result_row.append(
 						(column_to_aggregate * column_to_aggregate_overlap_len).sum() / total_overlap_length
 					)
+
 				elif column_action.aggregation.type == AggregationType.KeepLongestSegment:
 					aggregated_result_row.append(
 						column_to_aggregate.loc[column_to_aggregate_overlap_len.idxmax()]
 					)
+
 				elif column_action.aggregation.type == AggregationType.KeepLongest:
 					aggregated_result_row.append(
 						column_to_aggregate_overlap_len.groupby(column_to_aggregate).sum().idxmax()
 					)
+
 				elif column_action.aggregation.type == AggregationType.LengthWeightedPercentile:
-					
 					column_len_to_aggregate = column_len_to_aggregate.sort_values(
 						by=column_action.column_name,
 						ascending=True
 					)
-					
-					column_to_aggregate = column_len_to_aggregate.iloc[:, 0]
-					column_to_aggregate_overlap_len = column_len_to_aggregate.iloc[:, 1]
+
+					column_to_aggregate:             pandas.Series = column_len_to_aggregate.iloc[:, 0] # TODO: Why is this repeated?
+					column_to_aggregate_overlap_len: pandas.Series = column_len_to_aggregate.iloc[:, 1] # TODO: Why is this repeated?
 					
 					x_coords = (column_to_aggregate_overlap_len.rolling(2).mean()).fillna(0).cumsum()
 					x_coords /= x_coords.iloc[-1]
@@ -211,6 +224,7 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 						column_to_aggregate
 					)
 					aggregated_result_row.append(result)
+
 				elif column_action.aggregation.type == AggregationType.ProportionalSum:
 					# total_overlap_length = column_to_aggregate_overlap_len.sum()
 					data_to_aggregate_for_target_group_slk_length = data_to_aggregate_for_target_group[slk_to]-data_to_aggregate_for_target_group[slk_from]
@@ -227,6 +241,9 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 					aggregated_result_row.append(
 						column_to_aggregate.idxmax()
 					)
+				
+				# elif column_action.aggregation.type == AggregationType.SumMaxPerCategory:
+				# 	column_to_aggregate.index
 			
 			result_index.append(target_index)
 			result_rows.append(aggregated_result_row)

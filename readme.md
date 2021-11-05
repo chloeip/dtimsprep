@@ -77,6 +77,8 @@ The following code demonstrates `merge.on_slk_intervals()` by merging the dummy
 dataset `pavement_data` against the target `segmentation` dataframe.
 
 ```python
+import dtimsprep.merge as merge
+
 segmentation = pd.DataFrame(
     columns=["road_no", "carriageway", "slk_from", "slk_to"],
     data=[
@@ -108,6 +110,7 @@ result = merge.on_slk_intervals(
     ],
     from_to=("slk_from", "slk_to")
 )
+
 assert result.compare(
     pd.DataFrame(
         columns=["road_no", "carriageway", "slk_from", "slk_to", "pavement_width", "pavement_type"],
@@ -169,6 +172,8 @@ The following merge aggregations are supported:
 | `merge.Aggregation.Average()`                                 | Compute the average non-blank value                                                                                                                                   |
 | `merge.Aggregation.LengthWeightedPercentile(percentile=0.75)` | Compute the length weighted percentile (see description of method below). Value should be between 0.0 and 1.0. 0.75 means 75th percentile.                            |
 | `merge.Aggregation.ProportionalSum()`                         | Compute the sum of all data overlapping the target segment; The value of each segment is multiplied by the proportion of that segment overlapping the target segment. |
+| `merge.Aggregation.Sum()`                                     | Compute the sum of all data overlapping the target segment.                                                                                                           |
+| `merge.Aggregation.IndexOfMax()`                              | Return the row-index in the `data` with the maximum value.                                                                                                            |
 
 #### 3.3.1. Notes about `Aggregation.KeepLongest()`
 
