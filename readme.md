@@ -293,5 +293,8 @@ Currently there is a limited suit of tests which run using the `pytest` library.
 ### 4.2. Known Issues
 
 - If the values of `slk_from` > `slk_to` in either the data or the target segmentation, the merge will create invalid output.
-- Dependancies are not installed by pip because I have not added them to `setup.cfg` yet.
-- Probably the class `merge.Action` should be renamed to `merge.Column` to improve readability
+- Dependencies are not installed by pip because I have not added them to `setup.cfg` yet.
+- Probably the class `merge.Action` should be renamed to `merge.Column` to improve readability.
+- Performance is relatively poor, in the future, performance optimisations could be explored
+  - column-wise parallelism
+  - building a Rust python module
