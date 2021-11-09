@@ -2,7 +2,6 @@
 
 - [1. Introduction](#1-introduction)
 	- [1.1. Dependancies](#11-dependancies)
-	- [1.2. Correctness, Robustness, Test Coverage and Performance](#12-correctness-robustness-test-coverage-and-performance)
 - [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Module `merge`](#3-module-merge)
 	- [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
@@ -10,11 +9,13 @@
 	- [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
 		- [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
 	- [3.4. Practical Example of Merge](#34-practical-example-of-merge)
-	- [3.5. Known Issues](#35-known-issues)
+- [4. Notes](#4-notes)
+	- [4.1. Correctness, Robustness, Test Coverage and Performance](#41-correctness-robustness-test-coverage-and-performance)
+	- [4.2. Known Issues](#42-known-issues)
 
 ## 1. Introduction
 
-`dtimsprep` is a python package which contains several modules useful in
+`dtimsprep` is a python package which will contain several modules useful in
 the preparation of data for the dTIMS modelling process.
 
 Currently only the `merge` module is included, but other modules may be added in the future.
@@ -25,23 +26,7 @@ This package depends on Pandas (tested with version 1.3.1) and is most likely to
 work as expected in Python 3.7+.
 
 Note that currently the `pip install` command will not try to install these
-dependencies. This is because I am still learning how to build python packages
-and the setup file was giving me problems when I tried adding dependencies.
-
-### 1.2. Correctness, Robustness, Test Coverage and Performance
-
-This package aims to be as robust as its predecessor; an old VBA Excel Macro.
-The old Macro is well trusted and has a proven track record.
-
-In Pandas/Python there are some trade-offs to be made between robustness and performance:
-The more checking is done for malformed input data, the slower the algorithm. Some known issues are discussed in the `Known Issues` section below.
-
-However, if input data is well formed, then we can test to make sure we get correct outputs.
-Currently there is a limited suit of tests which run using the `pytest` library.
-
-- About 50% of the total functionality is tested
-- The other 50% has been extensively hand checked to confirm outputs are as expected.
-
+dependencies because I have not added them to the `setup.cfg` file yet.
 
 ## 2. Install, Upgrade, Uninstall
 
@@ -124,13 +109,13 @@ assert result.compare(
 
 ```
 
-| Parameter      | Type                 | Note                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| target         | `pandas.DataFrame`   | The result will have the same number of rows as the `target` data frame, and each row of the result will match the slk_interval of the target.                                                                                                                                                                                                                                            |
-| data           | `pandas.DataFrame`   | Columns from this DataFrame will be aggregated to match the `target` slk segmentation and used to create new columns in the result dataframe                                                                                                                                                                                                                                              |
-| join_left      | `list[str]`          | Ordered list of column names to join with.<br>Typically `["road_no","cway"]`.<br>Note:<ul><li>These column names must match in both the `target` and `data` DataFrames</li></ul>                                                                                                                                                                                                          |
-| column_actions | `list[merge.Action]` | A list of `merge.Action()` objects describing the aggregation to be used for each column of data that is to be added to the target. See examples below.                                                                                                                                                                                                                                   |
-| from_to        | `list[str]`          | the name of the start and end interval measures.<br>Typically `["slk_from", "slk_to"]`.<br>Note:<ul><li>These column names must match in both the `target` and `data` DataFrames</li><li>These columns should be converted to integers for reliable results prior to calling merge (see example below. The `unit_conversion.km_to_meters()` function is used for this purpose.)</li></ul> |
+| Parameter      | Type                 | Note                                                                                                                                                                                                                                                                                                              |
+| -------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| target         | `pandas.DataFrame`   | The result will have <ul><li>The same number of rows as the `target` data frame</li><li>The same sort-order as the `target` dataframe, and</li><li>each row of the result will match `slk_from` and `slk_to` of the `target` dataframe.</li></ul>                                                                 |
+| data           | `pandas.DataFrame`   | Columns from this DataFrame will be aggregated to match the `target` slk segmentation                                                                                                                                                                                                                             |
+| join_left      | `list[str]`          | Ordered list of column names to join with.<br>Typically `["road_no","cway"]`.<br>Note:<ul><li>These column names must match in both the `target` and `data` DataFrames</li></ul>                                                                                                                                  |
+| column_actions | `list[merge.Action]` | A list of `merge.Action()` objects describing the aggregation to be used for each column of data that is to be added to the target. See examples below.                                                                                                                                                           |
+| from_to        | `list[str]`          | the name of the start and end interval measures.<br>Typically `["slk_from", "slk_to"]`.<br>Note:<ul><li>These column names must match in both the `target` and `data` DataFrames</li><li>These columns should be converted to integers for reliable results prior to calling merge (see example below.)</li></ul> |
 
 ### 3.2. Class `merge.Action`
 
@@ -289,8 +274,24 @@ segmentation_pavement = merge.on_slk_intervals(
 segmentation_pavement.to_csv("output.csv")
 ```
 
+## 4. Notes
 
+### 4.1. Correctness, Robustness, Test Coverage and Performance
 
-### 3.5. Known Issues
+This package aims to be as robust as its predecessor; an old VBA Excel Macro.
+The old Macro is well trusted and has a proven track record.
+
+In Pandas/Python there are some trade-offs to be made between robustness and performance:
+The more checking is done for malformed input data, the slower the algorithm. Some known issues are discussed in the `Known Issues` section below.
+
+However, if input data is well formed, then we can test to make sure we get correct outputs.
+Currently there is a limited suit of tests which run using the `pytest` library.
+
+- About 50% of the total functionality is tested
+- The other 50% has been extensively hand checked to confirm outputs are as expected.
+
+### 4.2. Known Issues
 
 - If the values of `slk_from` > `slk_to` in either the data or the target segmentation, the merge will create invalid output.
+- Dependancies are not installed by pip because I have not added them to `setup.cfg` yet.
+- Probably the class `merge.Action` should be renamed to `merge.Column` to improve readability
