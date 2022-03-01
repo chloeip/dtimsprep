@@ -1,26 +1,26 @@
 # dtimsprep<!-- omit in toc -->
 
 - [1. Introduction](#1-introduction)
-	- [1.1. Dependancies](#11-dependancies)
+  - [1.1. Dependencies](#11-dependencies)
 - [2. Install, Upgrade, Uninstall](#2-install-upgrade-uninstall)
 - [3. Module `merge`](#3-module-merge)
-	- [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
-	- [3.2. Class `merge.Action`](#32-class-mergeaction)
-	- [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
-		- [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
-	- [3.4. Practical Example of Merge](#34-practical-example-of-merge)
+  - [3.1. Function `merge.on_slk_intervals()`](#31-function-mergeon_slk_intervals)
+  - [3.2. Class `merge.Action`](#32-class-mergeaction)
+  - [3.3. Class `merge.Aggregation`](#33-class-mergeaggregation)
+    - [3.3.1. Notes about `Aggregation.KeepLongest()`](#331-notes-about-aggregationkeeplongest)
+  - [3.4. Practical Example of Merge](#34-practical-example-of-merge)
 - [4. Notes](#4-notes)
-	- [4.1. Correctness, Robustness, Test Coverage and Performance](#41-correctness-robustness-test-coverage-and-performance)
-	- [4.2. Known Issues](#42-known-issues)
+  - [4.1. Correctness, Robustness, Test Coverage and Performance](#41-correctness-robustness-test-coverage-and-performance)
+  - [4.2. Known Issues](#42-known-issues)
 
 ## 1. Introduction
 
-`dtimsprep` is a python package which will contain several modules useful in
-the preparation of data for the dTIMS modelling process.
+`dtimsprep` is a python package useful in the preparation of data for the dTIMS
+modelling process.
 
 Currently only the `merge` module is included, but other modules may be added in the future.
 
-### 1.1. Dependancies
+### 1.1. Dependencies
 
 This package depends on Pandas (tested with version 1.3.1) and is most likely to
 work as expected in Python 3.7+.
@@ -253,8 +253,9 @@ pavement_data = pavement_data.rename(columns={
 pavement_data = pavement_data.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
-pavement_data[CN.slk_from] = (pavement_data[CN.slk_from]*1000.0).astype("int")
-pavement_data[CN.slk_to]   = (pavement_data[CN.slk_to]  *1000.0).astype("int")
+# Note that an explicit call to .round() is required, otherwise .astype() will always round toward zero.
+pavement_data[CN.slk_from] = (pavement_data[CN.slk_from]*1000.0).round().astype("int")
+pavement_data[CN.slk_to]   = (pavement_data[CN.slk_to]  *1000.0).round().astype("int")
 
 # =====================================================
 # Execute the merge:
