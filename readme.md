@@ -231,8 +231,8 @@ segmentation = segmentation.rename(columns={
 segmentation = segmentation.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
-segmentation[CN.slk_from] = (segmentation[CN.slk_from]*1000.0).astype("int")
-segmentation[CN.slk_to]   = (segmentation[CN.slk_to]  *1000.0).astype("int")
+segmentation[CN.slk_from] = (segmentation[CN.slk_from]*1000.0).round().astype("int")
+segmentation[CN.slk_to]   = (segmentation[CN.slk_to]  *1000.0).round().astype("int")
 
 # =====================================================
 # load data to be merged
