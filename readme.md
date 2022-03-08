@@ -231,6 +231,7 @@ segmentation = segmentation.rename(columns={
 segmentation = segmentation.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
+# Note that .round() is required, otherwise .astype("int") will always round toward zero (ie 1.99999 would become 1)
 segmentation[CN.slk_from] = (segmentation[CN.slk_from]*1000.0).round().astype("int")
 segmentation[CN.slk_to]   = (segmentation[CN.slk_to]  *1000.0).round().astype("int")
 
@@ -253,7 +254,6 @@ pavement_data = pavement_data.rename(columns={
 pavement_data = pavement_data.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
-# Note that an explicit call to .round() is required, otherwise .astype() will always round toward zero.
 pavement_data[CN.slk_from] = (pavement_data[CN.slk_from]*1000.0).round().astype("int")
 pavement_data[CN.slk_to]   = (pavement_data[CN.slk_to]  *1000.0).round().astype("int")
 
