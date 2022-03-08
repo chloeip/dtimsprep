@@ -20,6 +20,8 @@ modelling process.
 
 Currently only the `merge` module is included, but other modules may be added in the future.
 
+There is an ongoing effort to accelerate and parallelise the merge function under a new repo called [megamerge](https://github.com/thehappycheese/megamerge)
+
 ### 1.1. Dependencies
 
 This package depends on Pandas (tested with version 1.3.1) and is most likely to
@@ -231,9 +233,10 @@ segmentation = segmentation.rename(columns={
 segmentation = segmentation.dropna(subset=[CN.road_number, CN.carriageway, CN.slk_from, CN.slk_to])
 
 # Convert SLKs to meters and round to integer
-# Note that .round() is required, otherwise .astype("int") will always round toward zero (ie 1.99999 would become 1)
 segmentation[CN.slk_from] = (segmentation[CN.slk_from]*1000.0).round().astype("int")
 segmentation[CN.slk_to]   = (segmentation[CN.slk_to]  *1000.0).round().astype("int")
+# Note that .round() is required, otherwise .astype("int") 
+# will always round toward zero (ie 1.99999 would become 1)
 
 # =====================================================
 # load data to be merged
