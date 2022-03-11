@@ -100,6 +100,15 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 	if not isinstance(join_left, list):
 		raise Exception("Parameter `join_left` must be a list literal. Tuples and other sequence types will lead to cryptic errors from pandas.")
 	
+	# prevent doing a lot of work then getting an error from pandas 
+	# join about not specifying a suffix for overlapping column names
+	for column_action in column_actions:
+		if column_action.rename in target.columns:
+			if column_action.column_name == column_action.rename:
+				raise Exception(f"Cannot merge column '{column_action.column_name}' into target because the target already contains a column of that name. Please consider using the rename parameter; `Action(..., rename='xyz')`")
+			else:
+				raise Exception(f"Cannot merge column '{column_action.column_name}' as '{column_action.rename}' into target because the target already contains a column of that name. Please consider using the rename parameter; `Action(..., rename='xyz')`")
+
 	# ReIndex data for faster O(N) lookup
 	data = data.assign(data_id=data.index)
 	data = data.set_index([*join_left, 'data_id'])
@@ -114,6 +123,8 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			" any columns in the target DataFrame" if len(matching_columns) == 0
 			else f" all columns in target DataFrame. Only matched columns {matching_columns}"
 		))
+	
+
 	
 	# Main Loop
 	for target_group_index, target_group in target_groups:
