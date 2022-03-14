@@ -50,7 +50,8 @@ def test_IndexOfMax():
 		["road", "cwy"],
 		[
 			merge.Action('measure', aggregation=merge.Aggregation.IndexOfMax(), rename="argmax"),
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	
 	assert res.compare(expected_output).empty

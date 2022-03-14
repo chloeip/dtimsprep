@@ -47,7 +47,8 @@ def test_Sum():
 		["road", "cwy"],
 		[
 			merge.Action('measure', aggregation=merge.Aggregation.Sum()),
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	
 	assert res.compare(expected_output).empty

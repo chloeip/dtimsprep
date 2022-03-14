@@ -47,6 +47,7 @@ def test_keep_longest():
 			merge.Action('measure',  rename="measure longest value",    aggregation=merge.Aggregation.KeepLongest()),
 			merge.Action('category', rename="category longest segment", aggregation=merge.Aggregation.KeepLongestSegment()),
 			merge.Action('category', rename="category longest value",   aggregation=merge.Aggregation.KeepLongest()),
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	assert res.compare(expected_output).empty

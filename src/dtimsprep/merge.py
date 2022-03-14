@@ -91,7 +91,7 @@ class Action:
 		self.aggregation: Aggregation = aggregation
 
 
-def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action], from_to: Tuple[str, str] = ("slk_from", "slk_to")):
+def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[str], column_actions: List[Action], from_to: Tuple[str, str]):
 	slk_from, slk_to = from_to
 	
 	result_index = []
@@ -107,7 +107,22 @@ def on_slk_intervals(target: pd.DataFrame, data: pd.DataFrame, join_left: List[s
 			if column_action.column_name == column_action.rename:
 				raise Exception(f"Cannot merge column '{column_action.column_name}' into target because the target already contains a column of that name. Please consider using the rename parameter; `Action(..., rename='xyz')`")
 			else:
-				raise Exception(f"Cannot merge column '{column_action.column_name}' as '{column_action.rename}' into target because the target already contains a column of that name. Please consider using the rename parameter; `Action(..., rename='xyz')`")
+				raise Exception(f"Cannot merge column '{column_action.column_name}' as '{column_action.rename}' into target because the target already contains a column named '{column_action.rename}'.")
+
+	missing_columns = []
+	for column_name in join_left+list(from_to):
+		if column_name not in data.columns and column_name not in target.columns:
+			missing_columns.append(f"Column '{column_name}' is missing from both `target` and `data`.")
+		elif column_name not in data.columns:
+			missing_columns.append(f"Column '{column_name}' is missing from `data`.")
+		elif column_name not in target.columns:
+			missing_columns.append(f"Column '{column_name}' is missing from `target`.")
+	if len(missing_columns) > 0:
+		raise Exception(
+			"Please check the `join_left` and `from_to` parameters."
+			"Specified columns must be present and have matching names in both `target` and `data`:\n"
+			"\n".join(missing_columns)
+		)
 
 	# ReIndex data for faster O(N) lookup
 	data = data.assign(data_id=data.index)

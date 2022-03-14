@@ -80,7 +80,8 @@ def plot_seg_vs_merged(seg, dat, test_name):
 			merge.Action(cn.value, merge.Aggregation.Average(), rename="Average"),
 			merge.Action(cn.value, merge.Aggregation.First(), rename="First"),
 			merge.Action(cn.value, merge.Aggregation.ProportionalSum(), rename="PropSum")
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	
 	fig:plt.Figure

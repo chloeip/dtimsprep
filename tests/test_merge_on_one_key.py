@@ -45,6 +45,7 @@ def test_merge_on_one_key():
 		[
 			merge.Action('measure', rename="measure longest value", aggregation=merge.Aggregation.KeepLongest()),
 			merge.Action('category', rename="category longest value", aggregation=merge.Aggregation.KeepLongest()),
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	assert res.compare(expected_output).empty

@@ -44,7 +44,8 @@ def test_proportional_sum():
 		["road", "cwy"],
 		[
 			merge.Action('measure', aggregation=merge.Aggregation.ProportionalSum()),
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	
 	assert res.compare(expected_output).empty

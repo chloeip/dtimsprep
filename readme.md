@@ -272,7 +272,7 @@ segmentation_pavement = merge.on_slk_intervals(
         merge.Action(CN.pavement_total_width,        merge.Aggregation.LengthWeightedAverage()),
         merge.Action(CN.pavement_year_constructed,   merge.Aggregation.KeepLongest())
     ],
-    from_to=[CN.slk_from, CN.slk_to]
+    from_to=(CN.slk_from, CN.slk_to)
 )
 
 segmentation_pavement.to_csv("output.csv")

@@ -31,17 +31,20 @@ def test_graceful_overlapping_columns_error():
 			join_left     = ["road", "cwy"],
 			column_actions= [
 				merge.Action('measure',  aggregation=merge.Aggregation.KeepLongestSegment()),
-			]
+			],
+			from_to=("slk_from", "slk_to"),
 		)
 	
-	with pytest.raises(Exception, match=re.escape(f"Cannot merge column 'category' as 'measure' into target because the target already contains a column of that name. Please consider using the rename parameter; `Action(..., rename='xyz')`")):
+	with pytest.raises(Exception, match=re.escape(f"Cannot merge column 'category' as 'measure' into target because the target already contains a column named 'measure'.")):
+		                                          
 		res = merge.on_slk_intervals(
 			target        = segments,
 			data          = data,
 			join_left     = ["road", "cwy"],
 			column_actions= [
 				merge.Action('category', rename="measure", aggregation=merge.Aggregation.KeepLongestSegment()),
-			]
+			],
+			from_to=("slk_from", "slk_to"),
 		)
 
 	res = merge.on_slk_intervals(
@@ -50,6 +53,7 @@ def test_graceful_overlapping_columns_error():
 		join_left     = ["road", "cwy"],
 		column_actions= [
 			merge.Action('measure', rename="measure_1", aggregation=merge.Aggregation.KeepLongestSegment()),
-		]
+		],
+		from_to=("slk_from", "slk_to"),
 	)
 	
